@@ -12,8 +12,8 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
 
 ## Build & Run Instructions
 
-1. Build with CMake and Make
-  - `mkdir build && cmake -S . -B build && cmake --build build`
+1. Build
+  - `bash build.sh`
 1. Run the binary
   - `./build/genre_reveal_party.out`
 
