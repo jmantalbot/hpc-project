@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.24)
-project(homework2 VERSION 0.1.0 LANGUAGES CXX)
+project(genre_reveal_party VERSION 0.1.0 LANGUAGES CXX)
 
-set(BINARY a.out)
+set(BINARY genre_reveal_party.out)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Debug)
 
 include(FetchContent)
@@ -12,5 +13,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(rapidcsv)
 
-add_executable(${BINARY} main.cpp)
+file(COPY data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(${BINARY} src/main.cpp)
 target_link_libraries(${BINARY} rapidcsv)
