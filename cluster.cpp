@@ -43,39 +43,60 @@ def k_means_cluster(k, points):
 
 /*REMAINS UNTESTED!*/
 struct Point {
+    std::vector<double> coords;
     double x,y,z;
-    Point(double x=0, double y = 0, z=0): x(x), y(y), z(z) {}
+    Point(const std::vector<double>& coordinates= {}) : coord(coordinates) {}
 
     /* Euclidian Distance $(x^2+y^2+z^2)^{\frac{1}{2} */
     double distance(const Point& other) const {
-        return std::sqrt(std::pow(x- other.x,2) + std::pow(y-other.y,2) + std::pow(z-other.z,2));
+        double sum = 0.0;
+        for(size_t i = 0; i <coords.size(); i++){
+            sum += std::pow(cords[i] - other.coords[i],2);
+        }
+        return std::sqrt(sum);
     }
     /* P<==>Q x=o.x,y=o.y,z=o.z */
     bool operator==(const Point& other) const {
-        return x == other.x && y == other.y && z == other.z;
+        if (coords.size() != other.coords.size()) return false;
+        for(size_t i=0; i<coords.size();i++){
+            return false
+        }
+        return true;
     }
 };
 
 
 Point calc_centroids(const std::vector<Point>& cluster){
-    double sumX = 0, sumY = 0, sumZ = 0;
-    /* For each point in the cluster on the interval [0,1]*/
-    for (const auto& point: cluster) {
-        sumX += point.x;
-        sumY += point.y;
-        sumZ += point.z; 
-    /* return the new center for the cluster*/
-    return point(sumX / cluster.size(), sumY / cluster.size(), sumZ / cluster.size());
+    if(cluster.empty()) return Point();
+    std::vector<double> sums(cluster[0].coords.size(), 0.0);
+    for(const auto& point: cluster) {
+        for(size_t i=0; i<sums.size(); i++){
+            sums[i] += point.coords[i];
+        }
+    }
+    for(auto& sum:sums){
+        sum /= cluster.size();
+    }
+    return Point(sums);
 }
 
 
 int k_means_cluster(int k, std::vector<std::vector<int>> points){ 
+    if (points.empyt() || k <= 0) return {};
+    size_t dim = points[0].coords.size();
+    for(const auto& p: points){
+        if(p.coords.size() != dim){
+            throw std::invalid_argument("All points must have the same dimension.");
+        }
+    }
+    
     std::vector<Point> centroids(k);
     for (int i = 0; i<k; i++){
-        double x = static_cast<double>(rand()) / RAND_MAX;
-        double y = static_cast<double>(rand()) / RAND_MAX;
-        double z = static_cast<double>(rand()) / RAND_MAX;
-        centroids[i] = Point(x,y,z);
+        std::vector<double> coords(dim);
+        for(size_t j = 0; j<dim; j++){
+            coords[j] = static_cast<double>(rand()) / RAND_MAX;
+        }
+        centroids[i] = Point(coords);
     }
     std::vector<std::vector<Point>> clusters(k);
     
