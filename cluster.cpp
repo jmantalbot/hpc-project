@@ -40,18 +40,19 @@ def k_means_cluster(k, points):
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <cstdlib>
 
-/*REMAINS UNTESTED!*/
+/*REMAINS UNTESTED! Running on online compiler resulted in time exceeded error. This may be due to slow serialization that can be sped up as we parallelize. But, it did compile. */
 struct Point {
     std::vector<double> coords;
     double x,y,z;
-    Point(const std::vector<double>& coordinates= {}) : coord(coordinates) {}
+    Point(const std::vector<double>& coordinates= {}) : coords(coordinates) {}
 
     /* Euclidian Distance $(x^2+y^2+z^2)^{\frac{1}{2} */
     double distance(const Point& other) const {
         double sum = 0.0;
         for(size_t i = 0; i <coords.size(); i++){
-            sum += std::pow(cords[i] - other.coords[i],2);
+            sum += std::pow(coords[i] - other.coords[i],2);
         }
         return std::sqrt(sum);
     }
@@ -59,7 +60,7 @@ struct Point {
     bool operator==(const Point& other) const {
         if (coords.size() != other.coords.size()) return false;
         for(size_t i=0; i<coords.size();i++){
-            return false
+            return false;
         }
         return true;
     }
@@ -81,15 +82,15 @@ Point calc_centroids(const std::vector<Point>& cluster){
 }
 
 
-int k_means_cluster(int k, std::vector<std::vector<int>> points){ 
-    if (points.empyt() || k <= 0) return {};
+std::vector<std::vector<Point>> k_means_cluster(int k, std::vector<Point>& points){ 
+    if (points.empty() || k <= 0) return {};
     size_t dim = points[0].coords.size();
     for(const auto& p: points){
         if(p.coords.size() != dim){
             throw std::invalid_argument("All points must have the same dimension.");
         }
     }
-    
+
     std::vector<Point> centroids(k);
     for (int i = 0; i<k; i++){
         std::vector<double> coords(dim);
@@ -99,7 +100,7 @@ int k_means_cluster(int k, std::vector<std::vector<int>> points){
         centroids[i] = Point(coords);
     }
     std::vector<std::vector<Point>> clusters(k);
-    
+
     bool converged = false;
     while(!converged){
         for(auto& cluster: clusters){
@@ -126,6 +127,3 @@ int k_means_cluster(int k, std::vector<std::vector<int>> points){
     }
     return clusters;
 }
-
-
-
