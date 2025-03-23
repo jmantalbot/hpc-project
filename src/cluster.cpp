@@ -11,7 +11,7 @@
 
 Point calc_centroids(const std::vector<Point>& cluster){
     if(cluster.empty()) return Point();
-    std::vector<double> sums(cluster[0].coords.size(), 0.0);
+    std::vector<float> sums(cluster[0].coords.size(), 0.0);
     for(const auto& point: cluster) {
         for(size_t i=0; i<sums.size(); i++){
             sums[i] += point.coords[i];
@@ -35,9 +35,9 @@ std::vector<std::vector<Point>> k_means_cluster(int k, std::vector<Point>& point
 
     std::vector<Point> centroids(k);
     for (int i = 0; i<k; i++){
-        std::vector<double> coords(dim);
+        std::vector<float> coords(dim);
         for(size_t j = 0; j<dim; j++){
-            coords[j] = static_cast<double>(rand()) / RAND_MAX;
+            coords[j] = static_cast<float>(rand()) / RAND_MAX;
         }
         centroids[i] = Point(coords);
     }
@@ -49,10 +49,10 @@ std::vector<std::vector<Point>> k_means_cluster(int k, std::vector<Point>& point
             cluster.clear();
         }
         for(const auto& point: points) {
-            double minD = std::numeric_limits<double>::max();
+            float minD = std::numeric_limits<float>::max();
             int closest = 0;
             for(int i=0; i<k; i++){
-                double d = point.distance(centroids[i]);
+                float d = point.distance(centroids[i]);
                 if(d < minD){
                     minD = d;
                     closest = i;
