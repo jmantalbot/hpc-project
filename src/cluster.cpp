@@ -1,39 +1,3 @@
-/*
-From en.wikipedia.org/wiki/K-means_clustering
-----------------------------------------------
-
-def k_means_cluster(k, points):
-    # Initialization: choose k centroids (Forgy, Random Partition, etc.)
-    centroids = [c1, c2, ..., ck]
-    
-    # Initialize clusters list
-    clusters = [[] for _ in range(k)]
-    
-    # Loop until convergence
-    converged = false
-    while not converged:
-        # Clear previous clusters
-        clusters = [[] for _ in range(k)]
-    
-        # Assign each point to the "closest" centroid 
-        for point in points:
-            distances_to_each_centroid = [distance(point, centroid) for centroid in centroids]
-            cluster_assignment = argmin(distances_to_each_centroid)
-            clusters[cluster_assignment].append(point)
-        
-        # Calculate new centroids
-        #   (the standard implementation uses the mean of all points in a
-        #     cluster to determine the new centroid)
-        new_centroids = [calculate_centroid(cluster) for cluster in clusters]
-        
-        converged = (new_centroids == centroids)
-        centroids = new_centroids
-        
-        if converged:
-            return clusters
-
-*/
-
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -42,29 +6,7 @@ def k_means_cluster(k, points):
 #include <algorithm>
 #include <cstdlib>
 
-/*REMAINS UNTESTED! Running on online compiler resulted in time exceeded error. This may be due to slow serialization that can be sped up as we parallelize. But, it did compile. */
-struct Point {
-    std::vector<double> coords;
-    double x,y,z;
-    Point(const std::vector<double>& coordinates= {}) : coords(coordinates) {}
-
-    /* Euclidian Distance $(x^2+y^2+z^2)^{\frac{1}{2} */
-    double distance(const Point& other) const {
-        double sum = 0.0;
-        for(size_t i = 0; i <coords.size(); i++){
-            sum += std::pow(coords[i] - other.coords[i],2);
-        }
-        return std::sqrt(sum);
-    }
-    /* P<==>Q x=o.x,y=o.y,z=o.z */
-    bool operator==(const Point& other) const {
-        if (coords.size() != other.coords.size()) return false;
-        for(size_t i=0; i<coords.size();i++){
-            return false;
-        }
-        return true;
-    }
-};
+#include "point.hpp"
 
 
 Point calc_centroids(const std::vector<Point>& cluster){
