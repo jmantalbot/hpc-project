@@ -2,5 +2,12 @@
 #include <vector>
 #include "point.hpp"
 
-void k_means_cluster(std::vector<Point>* points, int maxEpochs, int k);
+/* --- kMeansCluster ----
+ * Determine the clusters for the given data points
+ * Args: 
+ *   std::vector<Point>* points // in and out
+ *   int maxEpochs // in
+ *   int k // in
+ */
+void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k);
 

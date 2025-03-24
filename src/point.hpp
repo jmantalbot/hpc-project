@@ -23,7 +23,7 @@ struct Point {
       for(size_t i = 0; i <coordinates.size(); i++){
           sum += std::pow(coordinates[i] - other.coordinates[i],2);
       }
-      return std::sqrt(sum); //TODO: see if this can be replace with absolute value for performance.
+      return std::sqrt(sum);
   }
 
   /* P<==>Q x=o.x,y=o.y,z=o.z */

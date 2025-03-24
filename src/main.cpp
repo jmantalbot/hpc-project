@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 	const int k = 5;
 	const int maxEpochs = 200;
 	std::cout << "Determining clusters with k = " << k << "..." << std::endl;
-	k_means_cluster(&points, maxEpochs, k);
+	kMeansCluster(&points, maxEpochs, k);
 	std::cout << "Done." << std::endl;
 
 	//write output to csv

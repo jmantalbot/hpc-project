@@ -12,8 +12,14 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
 #include "point.hpp"
 #include "cluster.hpp"
 
-bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
-    bool noChange = true;
+/* --- calcMinimumDistances ----
+ * Calculates the minimum distance between the points and the closest centroid.
+ * Updates the cluster of each point as necessary, if a different centroid is now the closest.
+ * Args: 
+ *   std::vector<Point>* points // in and out
+ *   std::vector<Point>* centroids // in
+ */
+void calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
         int clusterId = centroidIterator - centroids->begin();
         for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
@@ -21,17 +27,21 @@ bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centro
             float distance = centroidIterator->distance(point);
             if (distance < point.minDistance) {
                 //update the point's centroid (what cluster it belongs to)
-                //If this code is not execute in the current epoch, the points have converged.
-                noChange = false;
                 point.minDistance = distance;
                 point.cluster = clusterId;
             }
             *pointIterator = point;
         }
     }
-    return noChange;
 }
 
+/* --- moveCentroids ----
+ * Based on the cluster each point belongs to, compute the k-means and reposition the centroids.
+ * Args: 
+ *   std::vector<Point>* points // in and out (minDistance will change)
+ *   std::vector<Point>* centroids // in and out
+ *   int k // in
+ */
 void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, int k) {
     //Create vectors to keep track of data needed to compute means
     std::vector<int> numberOfPointsInEachCluster(k, 0);
@@ -50,7 +60,6 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
         for (size_t d = 0; d < sums.size(); d++) {
             sums[d][clusterId] += pointIterator->coordinates[d];
         }
-        pointIterator->minDistance = FLT_MAX;
     }
     //Move centroids to the mean coordinate of the points in its cluster
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
@@ -61,8 +70,14 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
     }
 }
 
-
-void k_means_cluster(std::vector<Point>* points, int maxEpochs, int k){
+/* --- kMeansCluster ----
+ * Determine the clusters for the given data points
+ * Args: 
+ *   std::vector<Point>* points // in and out
+ *   int maxEpochs // in
+ *   int k // in
+ */
+void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     //bounds checking
     if (points->empty() || k <= 0 || maxEpochs <= 0) {
         return;
@@ -87,16 +102,11 @@ void k_means_cluster(std::vector<Point>* points, int maxEpochs, int k){
         centroids.push_back(points->at(rand() % numberOfPoints)); 
     }
 
-    bool converged = true;
     //limit the number of epochs -- prevents infinite loops.
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
         // compute the distance from each centroid to each point
         // update the point's cluster as necessary.
-        converged = calcMinimumDistances(points, &centroids);
-        // if no changes to what clusters the points are in, break early.
-        if (converged) {
-            break;
-        }
+        calcMinimumDistances(points, &centroids);
         moveCentroids(points, &centroids, k);
     }
 }
