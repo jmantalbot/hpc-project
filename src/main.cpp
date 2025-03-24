@@ -3,6 +3,7 @@
 #include <vector>
 #include "rapidcsv.h"
 #include "point.hpp"
+#include "cluster.hpp"
 #include <map>
 
 std::vector<Point> readInputData(std::string filepath) {
@@ -52,12 +53,22 @@ std::vector<Point> readInputData(std::string filepath) {
 
 int main(int argc, char *argv[]) {
 
-	std::cout << "Testing clustering..." << std::endl;
-	
+	std::cout << "Reading input data..." << std::endl;
 	std::vector<Point> input_data = readInputData("data/spotify_short.csv");
-	
-	// clustering!
+	std::cout << "Done." << std::endl;
 
+	// clustering!
+	const int k = 2;
+	std::cout << "Determining clusters with k = " << k << "..." << std::endl;
+	std::vector<std::vector<Point>> clusters = k_means_cluster(k, input_data);
+	std::cout << "Done." << std::endl;
+
+	for (int i = 0; i < clusters.size(); i++) {
+		for (int j = 0; j < clusters[i].size(); j++) {
+			std::cout << clusters[i][j].toString() << " -- ";
+		}
+		std::cout << std::endl << std::endl;
+	}
 	//write output to csv
 
 	//doc.InsertColumn
