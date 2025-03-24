@@ -1,71 +1,70 @@
-#include <iostream>
+/*
+Serial implementation based on the provided example/tutorial at 
+https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
+*/
+
 #include <vector>
-#include <iomanip>
+#include <float.h>
 #include <cmath>
-#include <limits>
-#include <algorithm>
-#include <cstdlib>
+#include <stdexcept>
+
+#include <iostream>
 
 #include "point.hpp"
+#include "cluster.hpp"
 
 
-Point calc_centroids(const std::vector<Point>& cluster){
-    if(cluster.empty()) return Point();
-    std::vector<float> sums(cluster[0].coords.size(), 0.0);
-    for(const auto& point: cluster) {
-        for(size_t i=0; i<sums.size(); i++){
-            sums[i] += point.coords[i];
-        }
-    }
-    for(auto& sum:sums){
-        sum /= cluster.size();
-    }
-    return Point(sums);
-}
-
-
-std::vector<std::vector<Point>> k_means_cluster(int k, std::vector<Point>& points){ 
-    if (points.empty() || k <= 0) return {};
-    size_t dim = points[0].coords.size();
-    for(const auto& p: points){
-        if(p.coords.size() != dim){
-            throw std::invalid_argument("All points must have the same dimension.");
-        }
+void k_means_cluster(std::vector<Point>* points, int maxEpochs, int k){ 
+    int numberOfPoints = points->size();
+    if (numberOfPoints == 0) {
+        return;
     }
 
-    std::vector<Point> centroids(k);
-    for (int i = 0; i<k; i++){
-        std::vector<float> coords(dim);
-        for(size_t j = 0; j<dim; j++){
-            coords[j] = static_cast<float>(rand()) / RAND_MAX;
-        }
-        centroids[i] = Point(coords);
+    std::vector<Point> centroids;
+    // randomly select k points to be where the centroids start
+    std::srand(100); // for consistency
+    for (int centroidIdx = 0; centroidIdx < k; centroidIdx++) {
+        centroids.push_back(points->at(rand() % numberOfPoints)); 
     }
-    std::vector<std::vector<Point>> clusters(k);
-
-    bool converged = false;
-    while(!converged){
-        for(auto& cluster: clusters){
-            cluster.clear();
-        }
-        for(const auto& point: points) {
-            float minD = std::numeric_limits<float>::max();
-            int closest = 0;
-            for(int i=0; i<k; i++){
-                float d = point.distance(centroids[i]);
-                if(d < minD){
-                    minD = d;
-                    closest = i;
+    for (int epoch = 0; epoch < maxEpochs; epoch++) {
+        // compute the distance from each centroid to each point
+        // update the point's cluster as necessary. 
+        
+        for (std::vector<Point>::iterator centroidIterator = begin(centroids); centroidIterator != end(centroids); centroidIterator++) {
+            int clusterId = centroidIterator - begin(centroids);
+            for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
+                Point point = *pointIterator;
+                float distance = centroidIterator->distance(point);
+                if (distance < point.minDistance) {
+                    point.minDistance = distance;
+                    point.cluster = clusterId;
                 }
+                *pointIterator = point;
             }
-            clusters[closest].push_back(point);
         }
-        std::vector<Point> newCentroids(k);
-        for(int i=0; i<k;i++){
-            newCentroids[i] = clusters[i].empty() ? centroids[i] : calc_centroids(clusters[i]);
+        
+        //Create vectors to keep track of data eneded to compute means
+        std::vector<int> numberOfPointsInEachCluster(k, 0);
+        std::vector<std::vector<float>> sums(points->at(0).coordinates.size());
+        for (int j = 0; j < k; j++) {
+            for (int d = 0; d < sums.size(); d++) {
+                sums[d].push_back(0.0);
+            }
         }
-        converged = (newCentroids == centroids);
-        centroids = newCentroids;
+        
+        for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
+            int clusterId = pointIterator->cluster;
+            numberOfPointsInEachCluster[clusterId] += 1;
+            for (int d = 0; d < sums.size(); d++) {
+                sums[d][clusterId] += pointIterator->coordinates[d];
+            }
+            pointIterator->minDistance = FLT_MAX;
+        }
+        for (std::vector<Point>::iterator centroidIterator = begin(centroids); centroidIterator != end(centroids); centroidIterator++) {
+            int clusterId = centroidIterator - begin(centroids);
+            for (int d = 0; d < sums.size(); d++) {
+                centroidIterator->coordinates[d] = sums[d][clusterId] / numberOfPointsInEachCluster[clusterId];
+            }
+        }
     }
-    return clusters;
 }

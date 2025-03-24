@@ -11,19 +11,19 @@ std::vector<Point> readInputData(std::string filepath) {
 
 	// for now, ignoring id,name,album,album_id,artists,artist_ids,track_number,disc_number,explicit,duration_ms,year,release_date
 	const std::vector<std::string> FEATURE_KEYS = {
-		"explicit",
+		// "explicit",
 		"danceability",
 		"energy",
 		"key",
-		"loudness",
-		"mode",
-		"speechiness",
-		"acousticness",
-		"instrumentalness",
-		"liveness",
-		"valence",
-		"tempo",
-		"time_signature",
+		// "loudness",
+		// "mode",
+		// "speechiness",
+		// "acousticness",
+		// "instrumentalness",
+		// "liveness",
+		// "valence",
+		// "tempo",
+		// "time_signature",
 	};
 
 	std::vector<Point> input_data;
@@ -54,22 +54,24 @@ std::vector<Point> readInputData(std::string filepath) {
 int main(int argc, char *argv[]) {
 
 	std::cout << "Reading input data..." << std::endl;
-	std::vector<Point> input_data = readInputData("data/spotify_short.csv");
+	std::vector<Point> points = readInputData("data/spotify_short.csv");
 	std::cout << "Done." << std::endl;
+	std::cout << points.size() << std::endl;
 
 	// clustering!
-	const int k = 2;
+	const int k = 5;
+	const int maxEpochs = 20;
 	std::cout << "Determining clusters with k = " << k << "..." << std::endl;
-	std::vector<std::vector<Point>> clusters = k_means_cluster(k, input_data);
+	k_means_cluster(&points, maxEpochs, k);
 	std::cout << "Done." << std::endl;
 
-	for (int i = 0; i < clusters.size(); i++) {
-		for (int j = 0; j < clusters[i].size(); j++) {
-			std::cout << clusters[i][j].toString() << " -- ";
-		}
-		std::cout << std::endl << std::endl;
+	for (int i = 0; i < points.size(); i++) {
+		std::cout << points[i].toString() << std::endl << std::endl;
 	}
+
 	//write output to csv
+
+
 
 	//doc.InsertColumn
 	//doc.Save

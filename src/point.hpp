@@ -1,34 +1,45 @@
 #pragma once
+#include <iostream>
 #include <vector>
-#include <algorithm>
+#include <cmath>
+#include <float.h>
 
 struct Point {
-  std::vector<float> coords;
-  Point(const std::vector<float>& coordinates= {}) : coords(coordinates) {}
+  std::vector<float> coordinates;
+  int cluster;
+  float minDistance; // distance to the closest cluster centroid
+
+  Point() : coordinates({}), cluster(-1), minDistance(FLT_MAX) {}
+  Point(const std::vector<float>& coordinates) : coordinates(coordinates), cluster(-1), minDistance(FLT_MAX) {}
   
   /* Euclidian Distance $(x^2+y^2+z^2)^{\frac{1}{2} */
   float distance(const Point& other) const {
-      float sum = 0.0;
-      for(size_t i = 0; i <coords.size(); i++){
-          sum += std::pow(coords[i] - other.coords[i],2);
+      if (coordinates.size() != other.coordinates.size()) {
+        throw std::invalid_argument("Both Points must have the same dimension");
       }
-      return std::sqrt(sum);
+
+      float sum = 0.0;
+      for(size_t i = 0; i <coordinates.size(); i++){
+          sum += std::pow(coordinates[i] - other.coordinates[i],2);
+      }
+      return std::sqrt(sum); //TODO: see if this can be replace with absolute value for performance.
   }
+
   /* P<==>Q x=o.x,y=o.y,z=o.z */
   bool operator==(const Point& other) const {
-      if (coords.size() != other.coords.size()) return false;
-      for(size_t i=0; i<coords.size();i++){
+      if (coordinates.size() != other.coordinates.size()) return false;
+      for(size_t i=0; i<coordinates.size();i++){
           return false;
       }
       return true;
   }
 
   std::string toString() {
-    std::cout << coords.size() << std::endl;
+    std::cout << "cluster: " << cluster << std::endl;
     std::string s = "<";
-    for (int i = 0; i < coords.size(); i++) {
-      s.append(std::to_string(coords[i]));
-      if (i < coords.size() - 1) {
+    for (int i = 0; i < coordinates.size(); i++) {
+      s.append(std::to_string(coordinates[i]));
+      if (i < coordinates.size() - 1) {
         s.append(", ");
       }
     }
