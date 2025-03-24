@@ -7,23 +7,23 @@
 #include <map>
 
 std::vector<Point> readInputData(std::string filepath) {
-	rapidcsv::Document doc("data/spotify_short.csv");
+	rapidcsv::Document doc(filepath);
 
 	// for now, ignoring id,name,album,album_id,artists,artist_ids,track_number,disc_number,explicit,duration_ms,year,release_date
 	const std::vector<std::string> FEATURE_KEYS = {
-		// "explicit",
+		"explicit",
 		"danceability",
 		"energy",
 		"key",
-		// "loudness",
-		// "mode",
-		// "speechiness",
-		// "acousticness",
-		// "instrumentalness",
-		// "liveness",
-		// "valence",
-		// "tempo",
-		// "time_signature",
+		"loudness",
+		"mode",
+		"speechiness",
+		"acousticness",
+		"instrumentalness",
+		"liveness",
+		"valence",
+		"tempo",
+		"time_signature",
 	};
 
 	std::vector<Point> input_data;
@@ -51,27 +51,36 @@ std::vector<Point> readInputData(std::string filepath) {
 	return input_data;
 }
 
+void writeClusterData(std::string inputFilepath, std::string outputFilepath, std::vector<Point>* points) {
+	std::vector<int> clusters;
+	for (size_t i = 0; i < points->size(); i++) {
+		clusters.push_back(points->at(i).cluster);
+	}
+	rapidcsv::Document doc(inputFilepath);
+	doc.InsertColumn<int>(doc.GetColumnCount(), clusters, "cluster");
+	doc.Save(outputFilepath);
+	
+}
+
 int main(int argc, char *argv[]) {
+	const std::string INPUT_FILE = "data/spotify_short.csv";
+	const std::string OUTPUT_FILE = "data/spotify_clusters.csv";
 
 	std::cout << "Reading input data..." << std::endl;
 	std::vector<Point> points = readInputData("data/spotify_short.csv");
-	std::cout << "Done." << std::endl;
-	std::cout << points.size() << std::endl;
+	std::cout << "Done. " << points.size() << " points loaded." << std::endl;
 
 	// clustering!
 	const int k = 5;
-	const int maxEpochs = 20;
+	const int maxEpochs = 200;
 	std::cout << "Determining clusters with k = " << k << "..." << std::endl;
 	k_means_cluster(&points, maxEpochs, k);
 	std::cout << "Done." << std::endl;
 
-	for (int i = 0; i < points.size(); i++) {
-		std::cout << points[i].toString() << std::endl << std::endl;
-	}
-
 	//write output to csv
-
-
+	std::cout << "Writing output csv..." << std::endl;
+	writeClusterData(INPUT_FILE, OUTPUT_FILE, &points);
+	std::cout << "Done. See " << OUTPUT_FILE << std::endl;
 
 	//doc.InsertColumn
 	//doc.Save
