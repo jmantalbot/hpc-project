@@ -77,9 +77,9 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
  *   int maxEpochs // in
  *   int k // in
  */
-void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
+void kMeansCluster(std::vector<Point>* points, int k){
     //bounds checking
-    if (points->empty() || k <= 0 || maxEpochs <= 0) {
+    if (points->empty() || k <= 0) {
         return;
     }
     //basic information -- reduce number of calls to size functions

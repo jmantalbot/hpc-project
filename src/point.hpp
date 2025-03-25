@@ -31,7 +31,7 @@ struct Point {
       double epsilon = 1e-9;
       if (coordinates.size() != other.coordinates.size()) return false;
       for(size_t i=0; i<coordinates.size();i++){
-        if(std::abs(coords[i] - other.coords[i]) > epsilon){
+        if(std::abs(coordinates[i] - other.coordinates[i]) > epsilon){
           return false;
         }
       }

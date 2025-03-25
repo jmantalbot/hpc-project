@@ -59,7 +59,6 @@ void writeClusterData(std::string inputFilepath, std::string outputFilepath, std
 	rapidcsv::Document doc(inputFilepath);
 	doc.InsertColumn<int>(doc.GetColumnCount(), clusters, "cluster");
 	doc.Save(outputFilepath);
-	
 }
 
 int main(int argc, char *argv[]) {
