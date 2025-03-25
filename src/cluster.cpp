@@ -19,19 +19,23 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
  *   std::vector<Point>* points // in and out
  *   std::vector<Point>* centroids // in
  */
-void calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
+void calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids, std::vector<std::vector<Point>> clusters) {
+    Point point;
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
         int clusterId = centroidIterator - centroids->begin();
+	int closest = 0;
         for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
-            Point point = *pointIterator;
+            point = *pointIterator;
             float distance = centroidIterator->distance(point);
             if (distance < point.minDistance) {
                 //update the point's centroid (what cluster it belongs to)
                 point.minDistance = distance;
                 point.cluster = clusterId;
+		closest = clusterId;
             }
             *pointIterator = point;
         }
+	clusters[closest].push_back(point);
     }
 }
 
@@ -42,33 +46,23 @@ void calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centro
  *   std::vector<Point>* centroids // in and out
  *   int k // in
  */
-void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, int k) {
-    //Create vectors to keep track of data needed to compute means
-    std::vector<int> numberOfPointsInEachCluster(k, 0);
-    std::vector<std::vector<float>> sums(points->at(0).coordinates.size());
-    for (int j = 0; j < k; j++) {
-        for (size_t d = 0; d < sums.size(); d++) {
-            sums[d].push_back(0.0);
+Point moveCentroids(const std::vector<Point>& cluster){
+    if(cluster.empty()) return Point();
+    std::vector<float> sums(cluster[0].coordinates.size(), 0.0);
+    for(const auto& point: cluster) {
+        for(size_t i=0; i<sums.size(); i++){
+            sums[i] += point.coordinates[i];
         }
     }
-
-    //Compute means
-    //Compute sum of coordinates per cluster for each dimension
-    for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
-        int clusterId = pointIterator->cluster;
-        numberOfPointsInEachCluster[clusterId] += 1;
-        for (size_t d = 0; d < sums.size(); d++) {
-            sums[d][clusterId] += pointIterator->coordinates[d];
-        }
+    for(auto& sum:sums){
+        sum /= cluster.size();
     }
-    //Move centroids to the mean coordinate of the points in its cluster
-    for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
-        int clusterId = centroidIterator - centroids->begin();
-        for (size_t d = 0; d < sums.size(); d++) {
-            centroidIterator->coordinates[d] = sums[d][clusterId] / numberOfPointsInEachCluster[clusterId];
-        }
-    }
+    Point c =  Point(sums);
+    return c;
 }
+
+
+
 
 /* --- kMeansCluster ----
  * Determine the clusters for the given data points
@@ -101,10 +95,18 @@ void kMeansCluster(std::vector<Point>* points, int k){
         //set coordinate to that of a random point
         centroids.push_back(points->at(rand() % numberOfPoints)); 
     }
-
-    //limit the number of epochs -- prevents infinite loops.
-    // compute the distance from each centroid to each point
-    // update the point's cluster as necessary.
-    calcMinimumDistances(points, &centroids);
-    moveCentroids(points, &centroids, k);
+    std::vector<std::vector<Point>> clusters(k);
+    bool converged = false;
+    while(!converged){
+        for(auto& cluster:clusters){
+            cluster.clear();
+            }
+        calcMinimumDistances(points, &centroids, clusters);
+        std::vector<Point> newCentroids(k);
+        for (int i= 0; i<k;i++){
+            newCentroids[i] = clusters[i].empty() ? centroids[i] : moveCentroids(clusters[i]);
+        }
+        converged = (newCentroids == centroids);
+        centroids = newCentroids;
+    }
 }
