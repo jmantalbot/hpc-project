@@ -12,7 +12,7 @@ struct Point {
 
   Point() : coordinates({}), cluster(-1), minDistance(std::numeric_limits<float>::max()) {}
   Point(const std::vector<float>& coordinates) : coordinates(coordinates), cluster(-1), minDistance(FLT_MAX) {}
-  
+
   /* Euclidian Distance $(x^2+y^2+z^2)^{\frac{1}{2} */
   float distance(const Point& other) const {
       if (coordinates.size() != other.coordinates.size()) {
@@ -28,9 +28,12 @@ struct Point {
 
   /* P<==>Q x=o.x,y=o.y,z=o.z */
   bool operator==(const Point& other) const {
+      double epsilon = 1e-9;
       if (coordinates.size() != other.coordinates.size()) return false;
       for(size_t i=0; i<coordinates.size();i++){
+        if(std::abs(coords[i] - other.coords[i]) > epsilon){
           return false;
+        }
       }
       return true;
   }
