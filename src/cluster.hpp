@@ -9,5 +9,5 @@
  *   int maxEpochs // in
  *   int k // in
  */
-void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k);
+void kMeansCluster(std::vector<Point>* points, int k);
 

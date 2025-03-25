@@ -103,10 +103,8 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     }
 
     //limit the number of epochs -- prevents infinite loops.
-    for (int epoch = 0; epoch < maxEpochs; epoch++) {
-        // compute the distance from each centroid to each point
-        // update the point's cluster as necessary.
-        calcMinimumDistances(points, &centroids);
-        moveCentroids(points, &centroids, k);
-    }
+    // compute the distance from each centroid to each point
+    // update the point's cluster as necessary.
+    calcMinimumDistances(points, &centroids);
+    moveCentroids(points, &centroids, k);
 }
