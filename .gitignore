@@ -1,2 +1,4 @@
 *.png
 build
+.vscode
+data/spotify_clusters.csv
