@@ -97,7 +97,8 @@ void kMeansCluster(std::vector<Point>* points, int k){
     }
     std::vector<std::vector<Point>> clusters(k);
     bool converged = false;
-    while(!converged){
+    int iterations = 0;
+    while(!converged || iterations > 9999){
         for(auto& cluster:clusters){
             cluster.clear();
             }
@@ -108,5 +109,6 @@ void kMeansCluster(std::vector<Point>* points, int k){
         }
         converged = (newCentroids == centroids);
         centroids = newCentroids;
+        iterations++;
     }
 }
