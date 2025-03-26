@@ -19,8 +19,9 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
  *   std::vector<Point>* points // in and out
  *   std::vector<Point>* centroids // in
  */
-void calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
+bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
+        bool changed = false;
         int clusterId = centroidIterator - centroids->begin();
         for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
             Point point = *pointIterator;
@@ -29,10 +30,12 @@ void calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centro
                 //update the point's centroid (what cluster it belongs to)
                 point.minDistance = distance;
                 point.cluster = clusterId;
+                changed = true;
             }
             *pointIterator = point;
         }
     }
+    return changed;
 }
 
 /* --- moveCentroids ----
@@ -106,7 +109,11 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
         // compute the distance from each centroid to each point
         // update the point's cluster as necessary.
-        calcMinimumDistances(points, &centroids);
+        bool changed = calcMinimumDistances(points, &centroids);
         moveCentroids(points, &centroids, k);
+        if(changed == false){
+            std::cout << epoch << std::endl;
+            break;
+        }
     }
 }
