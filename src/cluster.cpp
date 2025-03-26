@@ -112,7 +112,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
         bool changed = calcMinimumDistances(points, &centroids);
         moveCentroids(points, &centroids, k);
         if(changed == false){
-            std::cout << epoch << std::endl;
+            std::cout << "This algorithm ran " << epoch << " number of times" << std::endl;
             break;
         }
     }
