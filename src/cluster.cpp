@@ -20,8 +20,8 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
  *   std::vector<Point>* centroids // in
  */
 bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
+    bool changed = false;
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
-        bool changed = false;
         int clusterId = centroidIterator - centroids->begin();
         for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
             Point point = *pointIterator;
