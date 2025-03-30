@@ -8,7 +8,7 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
-
+#include <omp.h>
 #include "point.hpp"
 #include "cluster.hpp"
 
@@ -21,18 +21,25 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
  */
 bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
     bool changed = false;
-    for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
-        int clusterId = centroidIterator - centroids->begin();
-        for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
-            Point point = *pointIterator;
-            float distance = centroidIterator->distance(point);
+    const int num_centroids = static_cast<int>(centroids->size());
+
+    for (int centroid_idx = 0; centroid_idx < num_centroids; centroid_idx++) {
+        const Point& centroid = centroids->at(centroid_idx);
+        const int clusterId = centroid_idx;
+
+        #pragma omp parallel for reduction(||:changed)
+        for (int point_idx = 0; point_idx < static_cast<int>(points->size()); point_idx++) {
+            Point& point = points->at(point_idx);
+            const float distance = centroid.distance(point);
             if (distance < point.minDistance) {
                 //update the point's centroid (what cluster it belongs to)
-                point.minDistance = distance;
-                point.cluster = clusterId;
-                changed = true;
+                # pragma omp critical
+                {
+                   point.minDistance = distance;
+                   point.cluster = clusterId;
+                   changed = true;
+                }
             }
-            *pointIterator = point;
         }
     }
     return changed;
