@@ -5,6 +5,7 @@
 #include "point.hpp"
 #include "cluster.hpp"
 #include <map>
+#include <omp.h>
 
 std::vector<Point> readInputData(std::string filepath) {
 	rapidcsv::Document doc(filepath);
@@ -26,13 +27,14 @@ std::vector<Point> readInputData(std::string filepath) {
 		"time_signature",
 	};
 
-	std::vector<Point> input_data;
-	std::vector<std::string> columnNames = doc.GetColumnNames();
-	std::vector<std::string> row;
-	for (size_t row_idx = 0; row_idx < doc.GetRowCount(); row_idx++) {
+	size_t row_count = doc.GetRowCount();
+	std::vector<Point> input_data(row_count);
+	#pragma omp parallel for
+	for (int row_idx = 0; row_idx < static_cast<int>(row_count); row_idx++) {
 		//for each row
-		row = doc.GetRow<std::string>(row_idx);
+		std::vector<std::string> row = doc.GetRow<std::string>(row_idx);
 		std::vector<float> coordinates;
+		coordinates.reserve(FEATURE_KEYS.size());
 		for (size_t feature_idx = 0; feature_idx < FEATURE_KEYS.size(); feature_idx++) {
 			std::string feature = doc.GetCell<std::string>(FEATURE_KEYS[feature_idx], row_idx);
 			//try to convert the feature to a float. Expecting strings to look like integers, floats, or boolean "True"/"False"
@@ -46,20 +48,20 @@ std::vector<Point> readInputData(std::string filepath) {
 				coordinates.push_back(std::stof(feature));
 			}
 		}
-		input_data.push_back(Point(coordinates));
+		input_data[row_idx] = Point(coordinates);
 	}
 	return input_data;
 }
 
 void writeClusterData(std::string inputFilepath, std::string outputFilepath, std::vector<Point>* points) {
-	std::vector<int> clusters;
-	for (size_t i = 0; i < points->size(); i++) {
-		clusters.push_back(points->at(i).cluster);
+	std::vector<int> clusters(points->size());
+	#pragma omp parallel for
+	for (int i = 0; i < static_cast<int>(points->size()); i++) {
+		clusters[i] = points->at(i).cluster;
 	}
 	rapidcsv::Document doc(inputFilepath);
 	doc.InsertColumn<int>(doc.GetColumnCount(), clusters, "cluster");
 	doc.Save(outputFilepath);
-	
 }
 
 int main(int argc, char *argv[]) {
