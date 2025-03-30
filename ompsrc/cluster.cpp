@@ -15,9 +15,10 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
 /* --- calcMinimumDistances ----
  * Calculates the minimum distance between the points and the closest centroid.
  * Updates the cluster of each point as necessary, if a different centroid is now the closest.
- * Args: 
- *   std::vector<Point>* points // in and out
+ * Args:
+ *   std::vector<Point>* points // in
  *   std::vector<Point>* centroids // in
+ * Return: if any points have changed which centroid they are associated with.
  */
 bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
     bool changed = false;
@@ -47,7 +48,7 @@ bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centro
 
 /* --- moveCentroids ----
  * Based on the cluster each point belongs to, compute the k-means and reposition the centroids.
- * Args: 
+ * Args:
  *   std::vector<Point>* points // in and out (minDistance will change)
  *   std::vector<Point>* centroids // in and out
  *   int k // in
@@ -82,7 +83,7 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
 
 /* --- kMeansCluster ----
  * Determine the clusters for the given data points
- * Args: 
+ * Args:
  *   std::vector<Point>* points // in and out
  *   int maxEpochs // in
  *   int k // in
@@ -109,7 +110,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     std::srand(100); // for consistency
     for (int centroidIdx = 0; centroidIdx < k; centroidIdx++) {
         //set coordinate to that of a random point
-        centroids.push_back(points->at(rand() % numberOfPoints)); 
+        centroids.push_back(points->at(rand() % numberOfPoints));
     }
 
     //limit the number of epochs -- prevents infinite loops.
