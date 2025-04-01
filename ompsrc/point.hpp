@@ -12,14 +12,15 @@ struct Point {
 
   Point() : coordinates({}), cluster(-1), minDistance(std::numeric_limits<float>::max()) {}
   Point(const std::vector<float>& coordinates) : coordinates(coordinates), cluster(-1), minDistance(FLT_MAX) {}
-  
-  /* Euclidian Distance $(x^2+y^2+z^2)^{\frac{1}{2} */
+
+  /* Euclidian Distance $(x^2+y^2+z^2+...)^{\frac{1}{2}}$ */
   float distance(const Point& other) const {
       if (coordinates.size() != other.coordinates.size()) {
         throw std::invalid_argument("Point::distance: Both Points must have the same dimension");
       }
 
       float sum = 0.0;
+      #pragma omp parallel for reduction(+:sum)
       for(size_t i = 0; i <coordinates.size(); i++){
           sum += std::pow(coordinates[i] - other.coordinates[i],2);
       }
