@@ -80,3 +80,7 @@ Done. See data/spotify_clusters.csv
 
 Conclusion: The double vector sum makes this one particularly difficult. Even when I put ever change in a critical section, the outputs and epochs were wildly different with each run.
 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The actual iterations of the k-means-clustering algorithm itself CANNOT be parallelized because each iteration is entirely based on the last one. It has to run serially, so there is no reason to parallelize.
+
