@@ -70,6 +70,7 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
     #pragma omp parallel for
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
         int clusterId = centroidIterator - centroids->begin();
+        #pragma omp parallel for
         for (size_t d = 0; d < sums.size(); d++) {
             centroidIterator->coordinates[d] = sums[d][clusterId] / numberOfPointsInEachCluster[clusterId];
         }
