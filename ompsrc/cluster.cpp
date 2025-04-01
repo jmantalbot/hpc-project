@@ -23,18 +23,17 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
 bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
     bool changed = false;
     const int num_centroids = static_cast<int>(centroids->size());
-
+/*ADDING THIS PARALLEL FOR CHANGES THE NUMBER OF ITERATIONS FROM A STABLE 3, to EITHER 3 OR 4*/
+/*Additonally, the output was inconsistent for this for-loop with pragma for*/
     for (int centroid_idx = 0; centroid_idx < num_centroids; centroid_idx++) {
         const Point& centroid = centroids->at(centroid_idx);
         const int clusterId = centroid_idx;
-
         #pragma omp parallel for reduction(||:changed)
         for (int point_idx = 0; point_idx < static_cast<int>(points->size()); point_idx++) {
             Point& point = points->at(point_idx);
             const float distance = centroid.distance(point);
             if (distance < point.minDistance) {
                 //update the point's centroid (what cluster it belongs to)
-                # pragma omp critical
                 {
                    point.minDistance = distance;
                    point.cluster = clusterId;
@@ -57,8 +56,9 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
     //Create vectors to keep track of data needed to compute means
     std::vector<int> numberOfPointsInEachCluster(k, 0);
     std::vector<std::vector<float>> sums(points->at(0).coordinates.size());
+    int sum_size = static_cast<int>(sums.size());
     for (int j = 0; j < k; j++) {
-        for (size_t d = 0; d < sums.size(); d++) {
+        for (int d = 0; d < sum_size; d++) {
             sums[d].push_back(0.0);
         }
     }
