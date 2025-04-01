@@ -96,6 +96,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     std::vector<Point> centroids(k);
     // randomly select k points to be where the centroids start
     std::srand(100); // for consistency
+/*This loop cannot be parallelized and remain consistent.*/
     for (int i=0;i<k;i++) {
         //set coordinate to that of a random point
         centroids[i] = (points->at(rand() % numberOfPoints));
