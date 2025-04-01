@@ -55,13 +55,7 @@ bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centro
 void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, int k) {
     //Create vectors to keep track of data needed to compute means
     std::vector<int> numberOfPointsInEachCluster(k, 0);
-    std::vector<std::vector<float>> sums(points->at(0).coordinates.size());
-    int sum_size = static_cast<int>(sums.size());
-    for (int j = 0; j < k; j++) {
-        for (int d = 0; d < sum_size; d++) {
-            sums[d].push_back(0.0);
-        }
-    }
+    std::vector<std::vector<float>> sums(points->at(0).coordinates.size(), std::vector<float>(k));
 
     //Compute means
     //Compute sum of coordinates per cluster for each dimension
