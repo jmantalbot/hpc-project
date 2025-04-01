@@ -59,6 +59,7 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
 
     //Compute means
     //Compute sum of coordinates per cluster for each dimension
+    // This loop is likely unparallelizable using OMP
     for(const auto& point: *points){
         int clusterId = point.cluster;
         numberOfPointsInEachCluster[clusterId]++;
@@ -92,12 +93,6 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     //basic information -- reduce number of calls to size functions
     int numberOfPoints = points->size();
 
-    //Check that all points have the same dimensions as the first point.
-    for (int i = 1; i < numberOfPoints; i++) {
-        if (points->at(i).coordinates.size() != points->at(0).coordinates.size()) {
-            throw std::invalid_argument("k_means_cluster: All points must have the same dimension.");
-        }
-    }
 
     //vector of centroids, set capacity to k.
     std::vector<Point> centroids;
