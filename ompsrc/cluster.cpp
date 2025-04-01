@@ -92,16 +92,13 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     }
     //basic information -- reduce number of calls to size functions
     int numberOfPoints = points->size();
-
-
     //vector of centroids, set capacity to k.
-    std::vector<Point> centroids;
-    centroids.reserve(k);
+    std::vector<Point> centroids(k);
     // randomly select k points to be where the centroids start
     std::srand(100); // for consistency
-    for (int centroidIdx = 0; centroidIdx < k; centroidIdx++) {
+    for (int i=0;i<k;i++) {
         //set coordinate to that of a random point
-        centroids.push_back(points->at(rand() % numberOfPoints));
+        centroids[i] = (points->at(rand() % numberOfPoints));
     }
 
     //limit the number of epochs -- prevents infinite loops.
