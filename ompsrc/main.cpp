@@ -36,6 +36,7 @@ std::vector<Point> readInputData(std::string filepath) {
 		std::vector<std::string> row = doc.GetRow<std::string>(row_idx);
 		std::vector<float> coordinates;
 		coordinates.reserve(FEATURE_KEYS.size());
+                #pragma omp parallel for
 		for (size_t feature_idx = 0; feature_idx < FEATURE_KEYS.size(); feature_idx++) {
 			std::string feature = doc.GetCell<std::string>(FEATURE_KEYS[feature_idx], row_idx);
 			//try to convert the feature to a float. Expecting strings to look like integers, floats, or boolean "True"/"False"
