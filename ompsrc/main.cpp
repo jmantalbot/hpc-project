@@ -6,6 +6,7 @@
 #include "cluster.hpp"
 #include <map>
 #include <omp.h>
+#define THREAD_COUNT 5
 
 std::vector<Point> readInputData(std::string filepath) {
 	rapidcsv::Document doc(filepath);
@@ -67,7 +68,7 @@ void writeClusterData(std::string inputFilepath, std::string outputFilepath, std
 int main(int argc, char *argv[]) {
 	const std::string INPUT_FILE = "data/spotify_short.csv";
 	const std::string OUTPUT_FILE = "data/spotify_clusters.csv";
-
+        omp_set_num_threads(THREAD_COUNT);
 	std::cout << "Reading input data..." << std::endl;
 	std::vector<Point> points = readInputData("data/spotify_short.csv");
 	std::cout << "Done. " << points.size() << " points loaded." << std::endl;
