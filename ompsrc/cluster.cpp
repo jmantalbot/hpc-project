@@ -59,14 +59,15 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
 
     //Compute means
     //Compute sum of coordinates per cluster for each dimension
-    for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
-        int clusterId = pointIterator->cluster;
-        numberOfPointsInEachCluster[clusterId] += 1;
+    for(const auto& point: *points){
+        int clusterId = point.cluster;
+        numberOfPointsInEachCluster[clusterId]++;
         for (size_t d = 0; d < sums.size(); d++) {
-            sums[d][clusterId] += pointIterator->coordinates[d];
+            sums[d][clusterId] += point.coordinates[d];
         }
     }
     //Move centroids to the mean coordinate of the points in its cluster
+    #pragma omp parallel for
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
         int clusterId = centroidIterator - centroids->begin();
         for (size_t d = 0; d < sums.size(); d++) {

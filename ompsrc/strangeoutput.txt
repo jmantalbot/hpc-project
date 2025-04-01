@@ -59,4 +59,24 @@ Conclusion: Critical section can be removed.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Parallelizing first for loop in move centroids:
+
+Reading input data...
+Done. 500 points loaded.
+Determining clusters with k = 5...
+This algorithm ran 9 number of times
+Done.
+Writing output csv...
+Done. See data/spotify_clusters.csv
+
+
+Reading input data...
+Done. 500 points loaded.
+Determining clusters with k = 5...
+This algorithm ran 11 number of times
+Done.
+Writing output csv...
+Done. See data/spotify_clusters.csv
+
+Conclusion: The double vector sum makes this one particularly difficult. Even when I put ever change in a critical section, the outputs and epochs were wildly different with each run.
 
