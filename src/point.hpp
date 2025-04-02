@@ -4,6 +4,7 @@
 #include <cmath>
 #include <float.h>
 #include <limits>
+#include <string>
 
 struct Point {
   std::vector<float> coordinates;

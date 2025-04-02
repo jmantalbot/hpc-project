@@ -21,6 +21,9 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
  */
 bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centroids) {
     bool changed = false;
+    //TODO: MPI broadcast centroids?
+    //TODO: MPI scatter points?
+    //TODO: MPI gather points?
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
         int clusterId = centroidIterator - centroids->begin();
         for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
@@ -49,6 +52,8 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
     //Create vectors to keep track of data needed to compute means
     std::vector<int> numberOfPointsInEachCluster(k, 0);
     std::vector<std::vector<float>> sums(points->at(0).coordinates.size());
+    //TODO: MPI gather? reduce? -- deprioritize
+    //TODO: swap index order for sums -- cluster first then dimension?
     for (int j = 0; j < k; j++) {
         for (size_t d = 0; d < sums.size(); d++) {
             sums[d].push_back(0.0);
@@ -57,6 +62,8 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
 
     //Compute means
     //Compute sum of coordinates per cluster for each dimension
+    // TODO: MPI scatter points and centroids? don't gather sums?
+    // TODO: note -- do not scatter/reduce whatever on dimensions (d), that will not be efficient for the dataset.
     for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
         int clusterId = pointIterator->cluster;
         numberOfPointsInEachCluster[clusterId] += 1;
@@ -64,7 +71,9 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
             sums[d][clusterId] += pointIterator->coordinates[d];
         }
     }
+
     //Move centroids to the mean coordinate of the points in its cluster
+    //TODO: MPI scatter centroids, gather editted centroids?
     for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
         int clusterId = centroidIterator - centroids->begin();
         for (size_t d = 0; d < sums.size(); d++) {

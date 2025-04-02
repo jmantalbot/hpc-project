@@ -26,6 +26,8 @@ std::vector<Point> readInputData(std::string filepath) {
 		"time_signature",
 	};
 
+
+	//TODO: MPI -- Scatter rows
 	std::vector<Point> input_data;
 	std::vector<std::string> columnNames = doc.GetColumnNames();
 	std::vector<std::string> row;
@@ -48,11 +50,13 @@ std::vector<Point> readInputData(std::string filepath) {
 		}
 		input_data.push_back(Point(coordinates));
 	}
+	//TODO: MPI -- gather coordinates into input_data
 	return input_data;
 }
 
 void writeClusterData(std::string inputFilepath, std::string outputFilepath, std::vector<Point>* points) {
 	std::vector<int> clusters;
+	//TODO: MPI -- scatter points? gather into clusters?
 	for (size_t i = 0; i < points->size(); i++) {
 		clusters.push_back(points->at(i).cluster);
 	}
