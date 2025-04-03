@@ -19,7 +19,6 @@ struct Point {
       }
 
       float sum = 0.0;
-      #pragma omp parallel for reduction(+:sum)
       for(size_t i = 0; i <coordinates.size(); i++){
           sum += std::pow(coordinates[i] - other.coordinates[i],2);
       }
