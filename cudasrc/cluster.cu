@@ -11,14 +11,26 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
 #include <iostream>
 #include "point.hpp"
 #include "cluster.hpp"
-#define BLOCK_SIZE 256;
+#define BLOCK_SIZE 256
+
+#define CUDA_CHECK(call) \
+do { \
+    cudaError_t err = (call); \
+    if (err != cudaSuccess) { \
+        fprintf(stderr, "CUDA error at %s:%d code=%d(%s) \"%s\"\n", \
+                __FILE__, __LINE__, err, cudaGetErrorString(err), #call); \
+        exit(EXIT_FAILURE); \
+    } \
+} while (0)
+
+
 
 __global__
 void computeDistances(float* coordinates, float* centroids, int* clusters, float* minDistances, int num_points, int k, int d, int* changed_count) {
    int idx = blockIdx.x * blockDim.x + threadIdx.x;
    if (idx >= num_points) return;
    float min_dist = FLT_MAX;
-   int min_cluster = -1;
+   int min_cluster = clusters[idx];
    for (int i = 0; i < k; i++){
       float dist = 0.0;
       for (int dim = 0; dim < d; dim++) {
@@ -31,11 +43,13 @@ void computeDistances(float* coordinates, float* centroids, int* clusters, float
          min_cluster = i;
       }
    }
-   if (clusters[idx] != min_cluster) {
-      atomicAdd(changed_count, 1);
+   if(min_dist < minDistances[idx]) {
+       minDistances[idx] = min_dist;
+       if (clusters[idx] != min_cluster) {
+           atomicAdd(changed_count, 1);
+           clusters[idx] = min_cluster;
+       }
    }
-   clusters[idx] = min_cluster;
-   minDistances[idx] = min_dist;
 }
 
 
@@ -83,8 +97,8 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
         for (size_t j = 0; j < d; j++) {
             h_coordinates[i * d + j] = points->at(i).coordinates[j];
         }
-        h_clusters[i] = points->at(i).cluster;
-        h_minDistances[i] = points->at(i).minDistance;
+        h_clusters[i] = -1;
+        h_minDistances[i] = FLT_MAX;
     }
     float* h_centroids = new float[k * d];
     std::srand(100);
@@ -117,7 +131,8 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
         int h_changed = 0;
         cudaMemset(d_changed, 0, sizeof(int));
 
-        computeDistances<<<blockSize, gridSize>>>(d_coordinates, d_centroids, d_clusters, d_minDistances, num_points, k, d, d_changed);
+        computeDistances<<<gridSize, blockSize>>>(d_coordinates, d_centroids, d_clusters, d_minDistances, num_points, k, d, d_changed);
+        CUDA_CHECK(cudaDeviceSynchronize());
         cudaMemcpy(&h_changed, d_changed, sizeof(int), cudaMemcpyDeviceToHost);
         if (h_changed == 0) {
             std::cout << "This Algorithm ran " << epoch << " times." << std::endl;
@@ -126,9 +141,10 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
         cudaMemset(d_sums, 0, k * d * sizeof(float));
         cudaMemset(d_counts, 0, k * sizeof(int));
 
-        computeSums<<<blockSize, gridSize>>>(d_coordinates, d_clusters, d_sums, d_counts, num_points, k, d);
-
+        computeSums<<<gridSize, blockSize>>>(d_coordinates, d_clusters, d_sums, d_counts, num_points, k, d);
+        CUDA_CHECK(cudaDeviceSynchronize());
         updateCentroids<<<k,d>>>(d_centroids, d_sums, d_counts, k, d);
+        CUDA_CHECK(cudaDeviceSynchronize());
     }
     cudaMemcpy(h_clusters, d_clusters, num_points * sizeof(int), cudaMemcpyDeviceToHost);
     for (size_t i = 0; i < num_points; i++){

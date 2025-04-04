@@ -50,6 +50,10 @@ target_compile_options(${PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--defa
 
 target_link_libraries(${PROJECT_NAME} rapidcsv)
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_compile_options(-Wno-line-directives)
+endif()
+
 
 # #
 # # gtest
