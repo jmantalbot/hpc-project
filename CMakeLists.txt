@@ -61,29 +61,13 @@ endif()
 target_link_libraries(${SERIAL_TARGET} rapidcsv)
 target_link_libraries(${MPI_TARGET} rapidcsv)
 
-# https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
 find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-if(NOT TARGET MPI::MPI_CXX)
-    add_library(MPI::MPI_CXX IMPORTED INTERFACE)
+include_directories(${MPI_INCLUDE_PATH})
 
-    set_property(TARGET MPI::MPI_CXX
-                 PROPERTY INTERFACE_COMPILE_OPTIONS ${MPI_CXX_COMPILE_FLAGS})
-    set_property(TARGET MPI::MPI_CXX
-                 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${MPI_CXX_INCLUDE_PATH}")
-    set_property(TARGET MPI::MPI_CXX
-                 PROPERTY INTERFACE_LINK_LIBRARIES ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES})
-    target_link_libraries(${MPI_TARGET} MPI::MPI_CXX)
-else()
-    message(FATAL_ERROR "MPI not found.")
-endif()
 find_package(Boost REQUIRED COMPONENTS mpi serialization)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    target_link_libraries(${MPI_TARGET} ${Boost_LIBRARIES})
-else()
-    message(FATAL_ERROR "Boost with MPI componenet not found.")
-endif()
+include_directories(${Boost_INCLUDE_DIRS})
+
+target_link_libraries(${MPI_TARGET} ${MPI_LIBRARIES} ${Boost_LIBRARIES})
 
 
 # #

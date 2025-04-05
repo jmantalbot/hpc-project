@@ -62,7 +62,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
 
     boost::mpi::broadcast(world, numberOfPoints, 0);
     boost::mpi::broadcast(world, numberOfCoordinates, 0);
-    boost::mpi::broadcast(workd, k, 0);
+    boost::mpi::broadcast(world, k, 0);
 
     std::vector<int> localPointCounts(world.size(), numberOfPoints / world.size());
     // last process also gets remainder points
@@ -91,12 +91,12 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
             }
         }
         //broadcast updated at start of each epoch.
-        boost::mpi::broadcast(world, centroids.data(), 0);
+        boost::mpi::broadcast(world, centroids.data(), k, 0);
         anyChanged = false;
         localChanged = false;
-        for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
-            int clusterId = centroidIterator - centroids->begin();
-            for (std::vector<Point>::iterator pointIterator = localPoints->begin(); pointIterator != localPoints->end(); pointIterator++) {
+        for (std::vector<Point>::iterator centroidIterator = centroids.begin(); centroidIterator != centroids.end(); centroidIterator++) {
+            int clusterId = centroidIterator - centroids.begin();
+            for (std::vector<Point>::iterator pointIterator = localPoints.begin(); pointIterator != localPoints.end(); pointIterator++) {
                 Point point = *pointIterator;
                 float distance = centroidIterator->distance(point);
                 if (distance < point.minDistance) {
@@ -125,7 +125,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
 
         //Compute means
         //Compute sum of coordinates per cluster for each dimension
-        for (std::vector<Point>::iterator pointIterator = localPoints->begin(); pointIterator != localPoints->end(); pointIterator++) {
+        for (std::vector<Point>::iterator pointIterator = localPoints.begin(); pointIterator != localPoints.end(); pointIterator++) {
             int clusterId = pointIterator->cluster;
             localNumberOfPointsInEachCluster[clusterId] += 1;
             for (size_t d = 0; d < k; d++) {
@@ -142,10 +142,10 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
         //root computes averages and moves centroids.
         if (world.rank() == 0) {
             //Move centroids to the mean coordinate of the points in its cluster
-            for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
-                int clusterId = centroidIterator - centroids->begin();
-                for (size_t d = 0; d < sums.size(); d++) {
-                    centroidIterator->coordinates[d] = globalSums[clusterId][d] / numberOfPointsInEachCluster[clusterId];
+            for (std::vector<Point>::iterator centroidIterator = centroids.begin(); centroidIterator != centroids.end(); centroidIterator++) {
+                int clusterId = centroidIterator - centroids.begin();
+                for (size_t d = 0; d < globalSums.size(); d++) {
+                    centroidIterator->coordinates[d] = globalSums[clusterId][d] / globalNumberOfPointsInEachCluster[clusterId];
                 }
             }
         }
@@ -153,7 +153,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
 
     boost::mpi::gatherv(
         world, 
-        localPoints.data(), //in values -- local points to transmit to root
+        localPoints, //in values -- local points to transmit to root
         points->data(), //out values -- all gathered points
         localPointCounts, // sizes of in values 
         0 // root process
