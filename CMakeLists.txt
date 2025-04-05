@@ -59,6 +59,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 target_link_libraries(${SERIAL_TARGET} rapidcsv)
+target_link_libraries(${MPI_TARGET} rapidcsv)
 
 # https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
 find_package(MPI REQUIRED)
@@ -72,8 +73,17 @@ if(NOT TARGET MPI::MPI_CXX)
                  PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${MPI_CXX_INCLUDE_PATH}")
     set_property(TARGET MPI::MPI_CXX
                  PROPERTY INTERFACE_LINK_LIBRARIES ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES})
+    target_link_libraries(${MPI_TARGET} MPI::MPI_CXX)
+else()
+    message(FATAL_ERROR "MPI not found.")
 endif()
-target_link_libraries(${MPI_TARGET} rapidcsv MPI::MPI_CXX)
+find_package(Boost REQUIRED COMPONENTS mpi serialization)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    target_link_libraries(${MPI_TARGET} ${Boost_LIBRARIES})
+else()
+    message(FATAL_ERROR "Boost with MPI componenet not found.")
+endif()
 
 
 # #

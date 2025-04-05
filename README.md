@@ -19,6 +19,22 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
 
 ## MPI approach
 
+1. Read spotify data in serial
+1. Scatterv points
+1. bcast centroids
+1. each epoch
+  1. sendrecv centroids (sync among processes)
+  1. calculate closest centroid for each point
+    1. break if none updated
+  1. compute local sum of each process's local points by cluster
+    1. local_sum[clusterId][dimension] = SUM(point[dimension] IF point.cluster = clusterId)
+    1. local_count[clusterId] += 1 for each point
+  1. reduce (sum) local_sum and local_count
+  1. serial move centroids to average position
+1. Gatherv points
+1. write points
+
+
 2 stages: points and centroids
 
 1. Scatterv/Gatherv/Reduce BY POINTS

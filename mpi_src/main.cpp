@@ -27,7 +27,7 @@ std::vector<Point> readInputData(std::string filepath) {
 	};
 
 
-	//TODO: MPI -- Scatter rows
+	//TODO: MPI -- broadcast document, scatter rows to read?
 	std::vector<Point> input_data;
 	std::vector<std::string> columnNames = doc.GetColumnNames();
 	std::vector<std::string> row;
