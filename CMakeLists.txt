@@ -9,6 +9,9 @@ include(FetchContent)
 set(PROJECT_NAME genre_reveal_party)
 set(SERIAL_TARGET genre_reveal_party)
 set(MPI_TARGET genre_reveal_party_mpi)
+set(Boost_DIR /uufs/chpc.utah.edu/common/home/u1196064/project/boost_1_85_0/lib/cmake/Boost-1.85.0)
+set(Boost_USE_MULTITHREADED TRUE)
+message(Boost_DIR=${Boost_DIR})
 
 # set(UNIT_TEST_RUNNER UnitTestRunner)
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX)
@@ -64,6 +67,7 @@ target_link_libraries(${MPI_TARGET} rapidcsv)
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
+# message(boost_mpi_DIR="${boost_mpi_DIR}")
 find_package(Boost REQUIRED COMPONENTS mpi serialization)
 include_directories(${Boost_INCLUDE_DIRS})
 

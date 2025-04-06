@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "point.hpp"
+#include <boost/mpi/communicator.hpp>
 
 /* --- kMeansCluster ----
  * Determine the clusters for the given data points
@@ -9,5 +10,11 @@
  *   int maxEpochs // in
  *   int k // in
  */
-void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k);
+void kMeansCluster(boost::mpi::communicator world,
+  std::vector<Point>* localPoints,
+  std::vector<Point>* centroids,
+  int numberOfCoordinates,
+  int maxEpochs, 
+  int k
+);
 
