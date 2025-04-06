@@ -80,9 +80,10 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     std::vector<int> globalNumberOfPointsInEachCluster(k, 0);
     std::vector<std::vector<float>> localSums(k, std::vector<float>(numberOfCoordinates, 0.0));
     std::vector<std::vector<float>> globalSums(k, std::vector<float>(numberOfCoordinates, 0.0));
-
+    std::cout << "here 1! " << world.rank() << std::endl;
     //limit the number of epochs -- prevents infinite loops.
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
+        std::cout << "here 2! " << world.rank() << std::endl;
         if (world.rank() == 0) {
             for (int clusterId = 0; clusterId < k; clusterId++) {
                 for (int dimension = 0; dimension < numberOfCoordinates; dimension++) {
@@ -92,6 +93,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
         }
         //broadcast updated at start of each epoch.
         boost::mpi::broadcast(world, centroids.data(), k, 0);
+        std::cout << "here 3! " << world.rank() << std::endl;
         anyChanged = false;
         localChanged = false;
         for (std::vector<Point>::iterator centroidIterator = centroids.begin(); centroidIterator != centroids.end(); centroidIterator++) {
@@ -108,12 +110,14 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
                 *pointIterator = point;
             }
         }
-        
+        std::cout << "here 4! " << world.rank() << std::endl;
+
         //reduce changed -- if all are false then break from loop for all processes.
         boost::mpi::all_reduce(world, localChanged, anyChanged, std::logical_or<bool>());
         if (!anyChanged) {
             break;
         }
+        std::cout << "here 5! " << world.rank() << std::endl;
 
         // reset localSums to 0 for all clusters and dimensions.
         // for each cluster
@@ -122,6 +126,7 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
                 localSums[clusterId][dimension] = 0.0;
             }
         }
+        std::cout << "here 6! " << world.rank() << std::endl;
 
         //Compute means
         //Compute sum of coordinates per cluster for each dimension
@@ -132,12 +137,15 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
                 localSums[clusterId][d] += pointIterator->coordinates[d];
             }
         }
+        std::cout << "here 7! " << world.rank() << std::endl;
 
         //reduce localSums and localNumberOfPointsInEachCluster
         boost::mpi::reduce(world, localNumberOfPointsInEachCluster.data(), k, globalNumberOfPointsInEachCluster.data(), std::plus<int>(), 0);
         for (int clusterId = 0; clusterId < k; clusterId++) {
-            boost::mpi::reduce(world, localSums[k].data(), numberOfCoordinates, globalSums[k].data(), std::plus<float>(), 0);
+            std::cout << "here 7.5! " << world.rank() << std::endl;
+            boost::mpi::reduce(world, localSums[clusterId].data(), numberOfCoordinates, globalSums[clusterId].data(), std::plus<float>(), 0);
         }
+        std::cout << "here 8! " << world.rank() << std::endl;
 
         //root computes averages and moves centroids.
         if (world.rank() == 0) {
@@ -149,6 +157,8 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
                 }
             }
         }
+        std::cout << "here 9! " << world.rank() << std::endl;
+
     }
 
     boost::mpi::gatherv(
