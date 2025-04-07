@@ -12,6 +12,10 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
 
 ## Build & Run Instructions
 
+1. Load necessary modules
+  - `module load gcc/13.1.0`
+  - `module load openmpi`
+  - `module load cmake`
 1. Build
   - `bash build.sh`
 1. Run the binary
