@@ -118,16 +118,16 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
         // compute the distance from each centroid to each point
         // update the point's cluster as necessary.
-        std::cout <<"SERIAL EPOCH " << epoch << " Centroids:\n";
-        for (int i = 0; i < k; i++){
-            std::cout << "  Centroid " << i << ": (";
-            for (size_t d = 0; d < centroids.at(i).coordinates.size(); d++){
-                std::cout << std::fixed << std::setprecision(6) << centroids.at(i).coordinates[d];
-                if (d< centroids.at(i).coordinates.size() -1) std::cout << ", ";
-            }
-            std::cout << ")\n";
-        }
-        std::cout << std::endl;
+//        std::cout <<"SERIAL EPOCH " << epoch << " Centroids:\n";
+//        for (int i = 0; i < k; i++){
+//            std::cout << "  Centroid " << i << ": (";
+//            for (size_t d = 0; d < centroids.at(i).coordinates.size(); d++){
+//                std::cout << std::fixed << std::setprecision(6) << centroids.at(i).coordinates[d];
+//                if (d< centroids.at(i).coordinates.size() -1) std::cout << ", ";
+//            }
+//            std::cout << ")\n";
+//        }
+//        std::cout << std::endl;
         bool changed = calcMinimumDistances(points, &centroids);
         moveCentroids(points, &centroids, k);
         if(changed == false){
