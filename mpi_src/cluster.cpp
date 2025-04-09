@@ -13,9 +13,9 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
 #include <boost/mpi/communicator.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/mpi/collectives.hpp>
-
 #include "point.hpp"
 #include "cluster.hpp"
+#include <iomanip>
 
 void determineClusters(
     boost::mpi::communicator world,
@@ -44,10 +44,10 @@ void determineClusters(
 		for (int centroidIdx = 0; centroidIdx < k; centroidIdx++) {
 			centroids.push_back(points->at(rand() % points->size()));
 		}
-	}
-	else {
-		centroids.resize(k);
-	}
+    }
+    else {
+	centroids.resize(k);
+    }
     //distribute points among the processes
 	std::vector<int> localPointCounts(world.size(), numberOfPoints / world.size());
 	localPointCounts[world.size() - 1] += numberOfPoints % world.size();
@@ -74,10 +74,10 @@ void determineClusters(
 		world,
 		localPoints, //in values -- local points to transmit to root
 		points->data(), //out values -- all gathered points
-		localPointCounts, // sizes of in values 
+		localPointCounts, // sizes of in values
 		0 // root process
 	);
-	
+
 	if (world.rank() == 0) {
 		std::cout << "Done." << std::endl;
 	}
@@ -91,18 +91,33 @@ void kMeansCluster(
     std::vector<Point>* localPoints,
     std::vector<Point>* centroids,
     int numberOfCoordinates,
-    int maxEpochs, 
+    int maxEpochs,
     int k
 ){
 
     bool localChanged, anyChanged;
     std::vector<int> localNumberOfPointsInEachCluster(k, 0);
     std::vector<int> globalNumberOfPointsInEachCluster(k, 0);
-    std::vector<std::vector<float>> localSums(k, std::vector<float>(numberOfCoordinates, 0.0));
-    std::vector<std::vector<float>> globalSums(k, std::vector<float>(numberOfCoordinates, 0.0));
+    std::vector<std::vector<double>> localSums(k, std::vector<double>(numberOfCoordinates, 0.0));
+    std::vector<std::vector<double>> globalSums(k, std::vector<double>(numberOfCoordinates, 0.0));
 
     //limit the number of epochs -- prevents infinite loops.
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
+        if(world.rank() == 0) {
+             std::cout << "MPI EPOCH " << epoch << " Centroids:\n";
+             for (int i = 0; i < k; i++) {
+                 std::cout << "  Centroid " << i << ": (";
+                 for (size_t d= 0; d < centroids->at(i).coordinates.size(); d++) {
+                     std::cout << std::fixed << std::setprecision(6) << centroids->at(i).coordinates[d];
+                     if (d < centroids->at(i).coordinates.size() - 1) std::cout << ", ";
+                 }
+                 std::cout <<")\n";
+            }
+            std::cout<<std::endl;
+        }
+
+
+
         //broadcast updated centroids at start of each epoch.
         boost::mpi::broadcast(world, centroids->data(), k, 0);
 
@@ -113,7 +128,7 @@ void kMeansCluster(
             int clusterId = centroidIterator - centroids->begin();
             for (std::vector<Point>::iterator pointIterator = localPoints->begin(); pointIterator != localPoints->end(); pointIterator++) {
                 Point point = *pointIterator;
-                float distance = centroidIterator->distance(point);
+                double distance = centroidIterator->distance(point);
                 if (distance < point.minDistance) {
                     //update the point's centroid (what cluster it belongs to)
                     point.minDistance = distance;
@@ -153,7 +168,7 @@ void kMeansCluster(
         for (std::vector<Point>::iterator pointIterator = localPoints->begin(); pointIterator != localPoints->end(); pointIterator++) {
             int clusterId = pointIterator->cluster;
             localNumberOfPointsInEachCluster[clusterId] += 1;
-            for (int d = 0; d < k; d++) {
+            for (int d = 0; d < numberOfCoordinates; d++) {
                 localSums[clusterId][d] += pointIterator->coordinates[d];
             }
         }
@@ -169,11 +184,10 @@ void kMeansCluster(
             //Move centroids to the mean coordinate of the points in its cluster
             for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
                 int clusterId = centroidIterator - centroids->begin();
-                for (size_t d = 0; d < globalSums.size(); d++) {
+                for (int d = 0; d < numberOfCoordinates; d++) {
                     centroidIterator->coordinates[d] = globalSums[clusterId][d] / globalNumberOfPointsInEachCluster[clusterId];
                 }
             }
         }
-        
     }
 }

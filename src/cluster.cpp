@@ -8,7 +8,7 @@ https://github.com/robertmartin8/RandomWalks/blob/master/kmeans.cpp
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
-
+#include <iomanip>
 #include "point.hpp"
 #include "cluster.hpp"
 
@@ -28,7 +28,7 @@ bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centro
         int clusterId = centroidIterator - centroids->begin();
         for (std::vector<Point>::iterator pointIterator = points->begin(); pointIterator != points->end(); pointIterator++) {
             Point point = *pointIterator;
-            float distance = centroidIterator->distance(point);
+            double distance = centroidIterator->distance(point);
             if (distance < point.minDistance) {
                 //update the point's centroid (what cluster it belongs to)
                 point.minDistance = distance;
@@ -51,7 +51,7 @@ bool calcMinimumDistances(std::vector<Point>* points, std::vector<Point>* centro
 void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, int k) {
     //Create vectors to keep track of data needed to compute means
     std::vector<int> numberOfPointsInEachCluster(k, 0);
-    std::vector<std::vector<float>> sums(points->at(0).coordinates.size());
+    std::vector<std::vector<double>> sums(points->at(0).coordinates.size());
     //TODO: MPI gather? reduce? -- deprioritize
     //TODO: swap index order for sums -- cluster first then dimension?
     for (int j = 0; j < k; j++) {
@@ -118,6 +118,16 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
         // compute the distance from each centroid to each point
         // update the point's cluster as necessary.
+        std::cout <<"SERIAL EPOCH " << epoch << " Centroids:\n";
+        for (int i = 0; i < k; i++){
+            std::cout << "  Centroid " << i << ": (";
+            for (size_t d = 0; d < centroids.at(i).coordinates.size(); d++){
+                std::cout << std::fixed << std::setprecision(6) << centroids.at(i).coordinates[d];
+                if (d< centroids.at(i).coordinates.size() -1) std::cout << ", ";
+            }
+            std::cout << ")\n";
+        }
+        std::cout << std::endl;
         bool changed = calcMinimumDistances(points, &centroids);
         moveCentroids(points, &centroids, k);
         if(changed == false){
