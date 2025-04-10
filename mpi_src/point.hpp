@@ -4,9 +4,26 @@
 #include <cmath>
 #include <float.h>
 #include <limits>
-#include <string>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/serialization.hpp>
 
-struct Point {
+class Point {
+  public:
+  //https://www.boost.org/doc/libs/1_87_0/doc/html/mpi/tutorial.html#mpi.tutorial.user_data_types
+  friend class boost::serialization::access;
+  
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter" 
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+    ar & coordinates;
+    ar & cluster;
+    ar & minDistance;
+  } 
+  #pragma GCC diagnostic pop
+
+
   std::vector<float> coordinates;
   int cluster;
   float minDistance; // distance to the closest cluster centroid
