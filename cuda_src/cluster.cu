@@ -119,16 +119,6 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     const int gridSize = (num_points + blockSize - 1) / blockSize;
     int h_changed = -1;
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
-        std::cout << "OMP EPOCH " << epoch << " Centroids:\n";
-        for (int i = 0; i < k; i++) {
-                 std::cout << "  Centroid " << i << ": (";
-                 for (size_t dim = 0; dim < d; dim++) {
-                     std::cout << std::fixed << std::setprecision(6) << h_centroids[i * d + dim];
-                     if (dim < d - 1) std::cout << ", ";
-                 }
-                 std::cout <<")\n";
-        }
-        std::cout<<std::endl;
         if (h_changed == 0) {
             std::cout << "This Algorithm ran " << epoch << " times." << std::endl;
             break;
@@ -150,16 +140,6 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     for (size_t i = 0; i < num_points; i++){
         points->at(i).cluster = h_clusters[i];
     }
-        for (int i = 0; i < k; i++) {
-                 std::cout << "  Centroid " << i << ": (";
-                 for (size_t dim = 0; dim < d; dim++) {
-                     std::cout << std::fixed << std::setprecision(6) << h_centroids[i * d + dim];
-                     if (dim < d - 1) std::cout << ", ";
-                 }
-                 std::cout <<")\n";
-        }
-        std::cout<<std::endl;
-
 
     delete[] h_coordinates;
     delete[] h_clusters;

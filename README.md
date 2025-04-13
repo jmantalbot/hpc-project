@@ -24,12 +24,8 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
 1. Build
   - `bash build.sh`
     - installing boost can take a while, be patient!
-1. Run the binaries
-  - Serial: `./build/genre_reveal_party`
-  - OMP: `TBD
-  - MPI: `mpirun -n <number_of_processes> ./build/genre_reveal_party_mpi`
-  - CUDA: `TBD`
-  - CUDA w/ MPI: `TBD`
+1. Run validation script, which runs all the resulting binaries
+  - `bash validation.sh`
 
 ## Dataset
 
