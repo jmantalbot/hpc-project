@@ -1,4 +1,8 @@
 *.png
 build
 .vscode
-data/spotify_clusters.csv
+data/
+!data/spotify_short.csv
+!data/spotify.csv
+boost*
+TODO.txt
