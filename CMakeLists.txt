@@ -7,7 +7,7 @@ include(FetchContent)
 set(PROJECT_NAME genre_reveal_party)
 set(SERIAL_TARGET genre_reveal_party)
 set(MPI_TARGET genre_reveal_party_mpi)
-set(Boost_DIR ${CMAKE_SOURCE_DIR}/boost_1_85_0/lib/cmake/Boost-1.85.0)
+set(Boost_DIR ${CMAKE_SOURCE_DIR}/boost_1_88_0/lib/cmake/Boost-1.88.0)
 set(Boost_USE_MULTITHREADED TRUE)
 message(Boost_DIR=${Boost_DIR})
 

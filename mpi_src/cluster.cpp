@@ -154,6 +154,7 @@ void kMeansCluster(
                 for (int dimension = 0; dimension < numberOfCoordinates; dimension++) {
                     globalSums[clusterId][dimension] = 0.0;
                 }
+                globalNumberOfPointsInEachCluster[clusterId] = 0;
             }
         }
         // reset localSums to 0 for all clusters and dimensions.
@@ -161,6 +162,7 @@ void kMeansCluster(
             for (int dimension = 0; dimension < numberOfCoordinates; dimension++) {
                 localSums[clusterId][dimension] = 0.0;
             }
+            localNumberOfPointsInEachCluster[clusterId] = 0;
         }
 
         //Compute means

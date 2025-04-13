@@ -18,8 +18,12 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
   - `module load cmake`
 1. Build
   - `bash build.sh`
-1. Run the binary
-  - `./build/genre_reveal_party`
+1. Run the binaries
+  - Serial: `./build/genre_reveal_party`
+  - OMP: `TBD
+  - MPI: `mpirun -n <number_of_processes> ./build/genre_reveal_party_mpi`
+  - CUDA: `TBD`
+  - CUDA w/ MPI: `TBD`
 
 ## Dataset
 
