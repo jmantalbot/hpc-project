@@ -69,11 +69,10 @@ void moveCentroids(std::vector<Point>* points, std::vector<Point>* centroids, in
     }
     //Move centroids to the mean coordinate of the points in its cluster
     #pragma omp parallel for
-    for (std::vector<Point>::iterator centroidIterator = centroids->begin(); centroidIterator != centroids->end(); centroidIterator++) {
-        int clusterId = centroidIterator - centroids->begin();
+    for (size_t clusterId = 0; clusterId < centroids->size(); clusterId++) {
         #pragma omp parallel for
         for (size_t d = 0; d < sums.size(); d++) {
-            centroidIterator->coordinates[d] = sums[d][clusterId] / numberOfPointsInEachCluster[clusterId];
+            centroids->at(clusterId).coordinates[d] = sums[d][clusterId] / numberOfPointsInEachCluster[clusterId];
         }
     }
 }

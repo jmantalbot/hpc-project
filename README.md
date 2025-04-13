@@ -12,6 +12,9 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
 
 ## Build & Run Instructions
 
+1. load necessary modules
+  - `module load nvhpc/23.9`
+  - `module load openmpi/5.0.3`
 1. Build
   - `bash build.sh`
 1. Run the binary

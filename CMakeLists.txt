@@ -10,7 +10,7 @@ include(FetchContent)
 set(PROJECT_NAME genre_reveal_party)
 set(SERIAL_TARGET genre_reveal_party)
 set(OMP_TARGET genre_reveal_party_omp)
-set(CUDA_TARGET genre_reveal_party_omp)
+set(CUDA_TARGET genre_reveal_party_cuda)
 
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX)
 
