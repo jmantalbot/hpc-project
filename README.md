@@ -15,6 +15,7 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
 1. Connect to NotchPeak on CHPC
   - required for GPU, kingspeak will not work (in our experience)
 1. Load all necessary modules on CHPC
+  - `module load python/3.10.3`
   - `module load gcc/11.2.0`
   - `module load cuda/12.5.0`
   - `module --latest load openmpi`

@@ -1,31 +1,33 @@
 #!/bin/bash
 
-./build/genre_reveal_party
-mv data/spotify_clusters.csv data/serial.csv
+mkdir -p data/out
 
-./build/genre_reveal_party_omp 27
-mv data/spotify_clusters.csv data/omp.csv
+./build/genre_reveal_party
+mv data/spotify_clusters.csv data/out/serial.csv
+
+./build/genre_reveal_party_omp 13
+mv data/spotify_clusters.csv data/out/omp.csv
 
 mpirun -n 17 ./build/genre_reveal_party_mpi
-mv data/spotify_clusters.csv data/mpi_17.csv
+mv data/spotify_clusters.csv data/out/mpi_17.csv
 
 ./build/genre_reveal_party_cuda
-mv data/spotify_clusters.csv data/cuda.csv
+mv data/spotify_clusters.csv data/out/cuda.csv
 
-if [[ -z "$(diff data/serial.csv data/omp.csv)" ]]; then
+if [[ -z "$(diff data/out/serial.csv data/out/omp.csv)" ]]; then
   echo "serial and omp outputs are the same 🎉"
 else
-  echo "ERROR: serial and omp outputs are different. Run `diff data/serial.csv data/omp.csv` to see differences"
+  echo "ERROR: serial and omp outputs are different. Run `diff data/out/serial.csv data/out/omp.csv` to see differences"
 fi
 
-if [[ -z "$(diff data/serial.csv data/mpi_17.csv)" ]]; then
+if [[ -z "$(diff data/out/serial.csv data/out/mpi_17.csv)" ]]; then
   echo "serial and mpi outputs are the same 🎉"
 else
-  echo "ERROR: serial and mpi outputs are different. Run `diff data/serial.csv data/mpi_17.csv` to see differences"
+  echo "ERROR: serial and mpi outputs are different. Run `diff data/out/serial.csv data/out/mpi_17.csv` to see differences"
 fi
 
-if [[ -z "$(diff data/serial.csv data/cuda.csv)" ]]; then
+if [[ -z "$(diff data/out/serial.csv data/out/cuda.csv)" ]]; then
   echo "serial and cuda outputs are the same 🎉"
 else
-  echo "ERROR: serial and cuda outputs are different. Run `diff data/serial.csv data/cuda.csv` to see differences"
+  echo "ERROR: serial and cuda outputs are different. Run `diff data/out/serial.csv data/out/cuda.csv` to see differences"
 fi
