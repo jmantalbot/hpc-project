@@ -6,7 +6,7 @@ import time
 
 INPUT_DATA_FILE = "data/spotify.csv"
 OUTPUT_DATA_FILE = "data/spotify_clusters.csv"
-PROCESS_COUNTS = [1, 4, 16]#, 64, 128]#, 256, 1024, 4096, 16384, 65536]
+PROCESS_COUNTS = [1, 4, 16, 32, 64, 128, 256, 1024, 4096, 16384, 65536]
 NODE_COUNTS = [2, 3, 4]
 REPETITIONS = 1 #TODO: change to 20
 

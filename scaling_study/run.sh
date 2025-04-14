@@ -31,5 +31,6 @@ python scaling_study/scaling_study.py
 # myprogram < file.input > file.output
 #Move files out of working directory and clean up
 cp -r data/out $HOME/project/data/out
+cp study_results.png $HOME/project/study_results_$SLURM_JOBID.png 
 cd $HOME
-rm -rf $SCRDIR
+# rm -rf $SCRDIR
