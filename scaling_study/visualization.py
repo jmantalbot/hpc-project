@@ -21,6 +21,7 @@ class ClusteringData:
     self.z_label = z_label
   
   def __colors(self):
+    random.seed(100)
     possible_colors = {}
     for i in range(len(self.all_clusters)):
       possible_colors[self.all_clusters[i]] = (
