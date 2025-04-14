@@ -3,7 +3,7 @@
 ./build/genre_reveal_party
 mv data/spotify_clusters.csv data/serial.csv
 
-./build/genre_reveal_party_omp
+./build/genre_reveal_party_omp 27
 mv data/spotify_clusters.csv data/omp.csv
 
 mpirun -n 17 ./build/genre_reveal_party_mpi

@@ -67,9 +67,16 @@ void writeClusterData(std::string inputFilepath, std::string outputFilepath, std
 }
 
 int main(int argc, char *argv[]) {
+	int thread_count = 5;
+	if (argc != 2) {
+		std::cout << "OMP target did not receive a number of threads, defaulting to 5." << std::endl;
+	}
+	else {
+		thread_count = std::stoi(argv[1]);
+	}
 	const std::string INPUT_FILE = "data/spotify_short.csv";
 	const std::string OUTPUT_FILE = "data/spotify_clusters.csv";
-        omp_set_num_threads(THREAD_COUNT);
+	omp_set_num_threads(thread_count);
 	std::cout << "Reading input data..." << std::endl;
 	std::vector<Point> points = readInputData("data/spotify_short.csv");
 	std::cout << "Done. " << points.size() << " points loaded." << std::endl;
