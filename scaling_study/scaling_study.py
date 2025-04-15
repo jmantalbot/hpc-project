@@ -6,7 +6,7 @@ import time
 
 INPUT_DATA_FILE = "data/spotify.csv"
 OUTPUT_DATA_FILE = "data/spotify_clusters.csv"
-PROCESS_COUNTS = [1, 4, 16, 32, 64, 128, 256, 1024, 4096, 16384, 65536]
+PROCESS_COUNTS = [1, 4, 16, 32, 64, 128, 256]#, 1024, 4096, 16384, 65536]
 NODE_COUNTS = [2, 3, 4]
 REPETITIONS = 1 #TODO: change to 20
 
@@ -22,26 +22,37 @@ MPI_EXECUTABLE = "./build/genre_reveal_party_mpi"
 CUDA_EXECUTABLE = "./build/genre_reveal_party_cuda"
 CUDA_MPI_EXECUTABLE = "./build/genre_reveal_party_cuda_mpi"
 
+def run_target(command, process_count: int, stdout = subprocess.DEVNULL) -> float:
+  print(f"{process_count} processes...")
+  elapsed_time = 0
+  try:
+    for _ in range(REPETITIONS):
+      start_time = time.perf_counter()
+      subprocess.run(
+        command,
+        stdout=stdout,
+        check=True,
+        stderr=subprocess.STDOUT
+      )
+      end_time = time.perf_counter()
+      elapsed_time += end_time - start_time
+    return elapsed_time / REPETITIONS
+  except subprocess.CalledProcessError as e:
+    print(f"\nCommand {command} failed for {process_count} processes.\nError Code: {e.returncode}\noutput:\n{e.stderr}\n")
+    return None
+  except FileNotFoundError as e:
+    print(f"Command not found: {command}")
+    return None
+  
+
 def run_and_plot_serial():
   """
   Run and time the serial target for the genre reveal party
   """
   print("running serial target...")
   results: dict[int, float] = dict.fromkeys(PROCESS_COUNTS)
-  start_time = 0
-  end_time = 0
   for process_count in PROCESS_COUNTS:
-    print(f"{process_count} processes....")
-    elapsed_time = 0
-    for _ in range(REPETITIONS):
-      start_time = time.perf_counter()
-      subprocess.run(
-        SERIAL_EXECUTABLE,
-        stdout=subprocess.DEVNULL
-      )
-      end_time = time.perf_counter()
-      elapsed_time += end_time - start_time
-    results[process_count] = elapsed_time / REPETITIONS
+    results[process_count] = run_target([SERIAL_EXECUTABLE], process_count=process_count)
   os.rename(OUTPUT_DATA_FILE, SERIAL_OUTPUT_DATA_FILE)
   print("Done.")
   plot_results(results, label="Serial")
@@ -52,23 +63,14 @@ def run_and_plot_omp():
   """
   print("running OMP target...")
   results: dict[int, float] = dict.fromkeys(PROCESS_COUNTS)
-  start_time = 0
-  end_time = 0
   for process_count in PROCESS_COUNTS:
-    print(f"{process_count} processes....")
-    elapsed_time = 0
-    for _ in range(REPETITIONS):
-      start_time = time.perf_counter()
-      subprocess.run(
-        [
-          OMP_EXECUTABLE,
-          str(process_count),
-        ],
-        stdout=subprocess.DEVNULL
-      )
-      end_time = time.perf_counter()
-      elapsed_time += end_time - start_time
-    results[process_count] = elapsed_time / REPETITIONS
+    results[process_count] = run_target(
+      [
+        OMP_EXECUTABLE,
+        str(process_count),
+      ], 
+      process_count=process_count
+    )
   os.rename(OUTPUT_DATA_FILE, OMP_OUTPUT_DATA_FILE)
   print("Done.")
   plot_results(results, label="OMP")
@@ -79,25 +81,24 @@ def run_and_plot_mpi():
   """
   print("running MPI target...")
   results: dict[int, float] = dict.fromkeys(PROCESS_COUNTS)
-  start_time = 0
-  end_time = 0
   for process_count in PROCESS_COUNTS:
-    print(f"{process_count} processes....")
-    elapsed_time = 0
-    for _ in range(REPETITIONS):
-      start_time = time.perf_counter()
-      subprocess.run(
-        [
-          "mpirun",
-          "-n",
-          str(process_count),
-          MPI_EXECUTABLE,
-        ],
-        stdout=subprocess.DEVNULL
-      )
-      end_time = time.perf_counter()
-      elapsed_time += end_time - start_time
-    results[process_count] = elapsed_time / REPETITIONS
+    results[process_count] = run_target(
+      # [
+      #   "mpirun",
+      #   "-n",
+      #   str(process_count),
+      #   MPI_EXECUTABLE,
+      # ], 
+      [
+        "mpirun", "-n", f"{process_count}", "--display-map", "--map-by", ":OVERSUBSCRIBE", "./build/genre_reveal_party_mpi"
+      ],
+      # [
+      #   "mpirun", "-n", f"{process_count}",  "-map-by socket", "-bind-to socket", "--display-map", "./build/genre_reveal_party_mpi"
+        
+      # ],
+      process_count=process_count,
+      stdout = None
+    )
   os.rename(OUTPUT_DATA_FILE, MPI_OUTPUT_DATA_FILE)
   print("Done.")
   plot_results(results, label="MPI")
@@ -108,20 +109,11 @@ def run_and_plot_cuda():
   """
   print("running CUDA target...")
   results: dict[int, float] = dict.fromkeys(PROCESS_COUNTS)
-  start_time = 0
-  end_time = 0
   for process_count in PROCESS_COUNTS:
-    print(f"{process_count} processes....")
-    elapsed_time = 0
-    for _ in range(REPETITIONS):
-      start_time = time.perf_counter()
-      subprocess.run(
-        CUDA_EXECUTABLE,
-        stdout=subprocess.DEVNULL
-      )
-      end_time = time.perf_counter()
-      elapsed_time += end_time - start_time
-    results[process_count] = elapsed_time / REPETITIONS
+    results[process_count] = run_target(
+      [CUDA_EXECUTABLE], 
+      process_count=process_count
+    )
   os.rename(OUTPUT_DATA_FILE, CUDA_OUTPUT_DATA_FILE)
   print("Done.")
   plot_results(results, label="CUDA")
