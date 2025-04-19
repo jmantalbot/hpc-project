@@ -1,6 +1,12 @@
 #!/bin/bash
-#SBATCH -o serial_-%j.out-%N
-#SBATCH -e serial_-%j.err-%N
+#SBATCH --time 0:15:00
+#SBATCH --partition=notchpeak-gpu
+#SBATCH --account=notchpeak-gpu
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --overcommit
+#SBATCH -o slurmjob-%j.out-%N
+#SBATCH -e slurmjob-%j.err-%N
 
 module load python/3.10.3
 module load gcc/11.2.0
@@ -10,5 +16,4 @@ module --latest load cmake
 
 # file to save timing to is first argument
 # thread count to use is second argument
-
-python time_execution.py --target serial --timing-output-file $1 --thread-count $2
+python scaling_study/time_execution.py --target serial --output scaling_study/results/serial_timing.csv

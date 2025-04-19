@@ -4,6 +4,7 @@ build
 data/
 !data/spotify_short.csv
 !data/spotify.csv
+*timing*.csv
 boost*
 TODO.txt
 *.out*
