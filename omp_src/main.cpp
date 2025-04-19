@@ -74,11 +74,11 @@ int main(int argc, char *argv[]) {
 	else {
 		thread_count = std::stoi(argv[1]);
 	}
-	const std::string INPUT_FILE = "data/spotify_short.csv";
+	const std::string INPUT_FILE = "data/spotify.csv";
 	const std::string OUTPUT_FILE = "data/spotify_clusters.csv";
 	omp_set_num_threads(thread_count);
 	std::cout << "Reading input data..." << std::endl;
-	std::vector<Point> points = readInputData("data/spotify_short.csv");
+	std::vector<Point> points = readInputData(INPUT_FILE);
 	std::cout << "Done. " << points.size() << " points loaded." << std::endl;
 
 	// clustering!

@@ -17,12 +17,13 @@ GPU_ACCOUNT = "notchpeak-gpu"
 RESULTS_DIRECTORY = "scaling_study/results"
 SERIAL_TIMING_FILE = os.path.join(RESULTS_DIRECTORY, "serial_timing.csv")
 OMP_TIMING_FILE = os.path.join(RESULTS_DIRECTORY, "omp_timing.csv")
-
-SCRATCH_DIR = os.getcwd()
+CUDA_TIMING_FILE = os.path.join(RESULTS_DIRECTORY, "cuda_timing.csv")
+CUDA_MPI_TIMING_FILE = os.path.join(RESULTS_DIRECTORY, "cuda_mpi_timing.csv")
 
 THREAD_COUNT_HEADER = "thread_count"
 PROCESSES_PER_NODE_HEADER = "processes_per_node"
 TOTAL_PROCESSES_PER_NODE_HEADER = "total_processes"
+BLOCK_SIZE_HEADER = "block_size"
 EXECUTION_TIME_HEADER = "execution_time"
 
 
@@ -69,8 +70,17 @@ def queue_mpi_jobs():
       stderr=subprocess.STDOUT
     )
 
-def queue_cuda_jobs():
-  pass
+def queue_cuda_job():
+  print("queueing job for CUDA target")
+  command = [
+    "sbatch",
+    'scaling_study/slurm_run_cuda.sh',
+  ]
+  subprocess.run(command,
+    stdout=None,
+    check=True,
+    stderr=subprocess.STDOUT
+  )
 
 def queue_cuda_mpi_jobs():
   print("CUDA with MPI not yet implemented.")
@@ -78,11 +88,11 @@ def queue_cuda_mpi_jobs():
 def run_all_jobs():
   try:
     # queue jobs
-    # queue_serial_job()
-    # queue_omp_job()
+    queue_serial_job()
+    queue_omp_job()
     queue_mpi_jobs()
-    # queue_cuda_jobs()
-    # queue_cuda_mpi_jobs()
+    queue_cuda_job()
+    queue_cuda_mpi_jobs()
     # wait until all jobs are done
     while subprocess.run(["squeue", "-u", f"{os.getenv('USER')}", "--noheader"], capture_output=True, text=True).stdout.strip():
       print("waiting for jobs to finish, run watch 'squeue -u $USER' to see the job queue...")
@@ -144,25 +154,30 @@ def plot_mpi_results():
     plt.plot(x, y, label=f"MPI {node_count} Nodes")
 
 def plot_cuda_results():
-  pass
+  results = []
+  with open(CUDA_TIMING_FILE, "r", encoding="utf-8") as timing_file:
+    csv_reader = csv.DictReader(timing_file)
+    for row in csv_reader:
+      results.append((int(row[BLOCK_SIZE_HEADER]), float(row[EXECUTION_TIME_HEADER])))
+  results.sort(key=lambda x: x[0])
+  x, y = zip(*results)
+  plt.plot(x, y, label="CUDA")
 
 def plot_cuda_mpi_results():
   pass
 
 def add_line_to_plot(x, y, label):
-  # results.sort(key=lambda x: x[0])
-  # x, y = zip(*results)
   plt.plot(x, y, label=label)
 
   
 def plot_results():
   plt.clf()
   # Serial and OMP in one plot
-  # setup_plot("Number of threads", "Time (s)", False)
-  # plot_serial_results()
-  # plot_omp_results()
-  # save_plot(os.path.join(RESULTS_DIRECTORY, "serial_omp_results.png"))
-  # plt.clf()
+  setup_plot("Number of threads", "Time (s)", False)
+  plot_serial_results()
+  plot_omp_results()
+  save_plot(os.path.join(RESULTS_DIRECTORY, "serial_omp_results.png"))
+  plt.clf()
 
   # MPI Plot
   setup_plot("Number of Processes Per Node", "Time (s)", False)
@@ -171,15 +186,15 @@ def plot_results():
   plt.clf()
 
   # # CUDA Plot
-  # setup_plot("Grid Width", "Time (s)", False)
-  # plot_cuda_results()
-  # save_plot(os.path.join(RESULTS_DIRECTORY, "cuda_results.png"))
-  # plt.clf()
+  setup_plot("Grid Width", "Time (s)", False)
+  plot_cuda_results()
+  save_plot(os.path.join(RESULTS_DIRECTORY, "cuda_results.png"))
+  plt.clf()
 
-  # # CUDA + MPI Plot
-  # setup_plot("Unsure yet", "Time (s)", False)
-  # plot_cuda_mpi_results()
-  # save_plot(os.path.join(RESULTS_DIRECTORY, "cuda_mpi_results.png"))
+  # CUDA + MPI Plot
+  setup_plot("Unsure yet", "Time (s)", False)
+  plot_cuda_mpi_results()
+  save_plot(os.path.join(RESULTS_DIRECTORY, "cuda_mpi_results.png"))
 
 def save_plot(filepath: str = "study_results.png"):
   plt.legend()
@@ -188,7 +203,7 @@ def save_plot(filepath: str = "study_results.png"):
 def main():
   print("Starting scaling study.")
   os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
-  # run_all_jobs()
+  run_all_jobs()
   plot_results()
 
 if __name__ == "__main__":

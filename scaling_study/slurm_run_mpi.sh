@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --time 0:15:00
+#SBATCH --time 0:30:00
 #SBATCH --partition=notchpeak-gpu
 #SBATCH --account=notchpeak-gpu
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=4
 #SBATCH --cpus-per-task=1
 #SBATCH --overcommit
-#SBATCH -o slurmjob-%j.out-%N
-#SBATCH -e slurmjob-%j.err-%N
+#SBATCH -o scaling_study/logs/slurmjob-%j.out-%N
+#SBATCH -e scaling_study/logs/slurmjob-%j.err-%N
 
 # number of nodes determined by command line (sbatch --nodes=<number_of_nodes>)
 

@@ -15,11 +15,17 @@ CUDA_MPI_EXECUTABLE = "./build/genre_reveal_party_cuda_mpi"
 THREAD_COUNT_HEADER = "thread_count"
 PROCESSES_PER_NODE_HEADER = "processes_per_node"
 TOTAL_PROCESSES_PER_NODE_HEADER = "total_processes"
+BLOCK_SIZE_HEADER = "block_size"
 EXECUTION_TIME_HEADER = "execution_time"
 
 
-OMP_THREAD_COUNTS = [1, 16, 32, 48, 64, 128, 256, 1024]
-MPI_PROCESSES_PER_NODE = [1, 2, 4, 8, 16, 32]
+# OMP_THREAD_COUNTS = [1, 16, 32, 48, 64, 128, 256, 1024]
+# MPI_PROCESSES_PER_NODE = [1, 2, 4, 8, 16, 32]
+# BLOCK_SIZES = [1, 32, 64, 128, 256, 512, 1024]
+
+OMP_THREAD_COUNTS = [1, 32, 64, 1024]
+MPI_PROCESSES_PER_NODE = [1, 8, 16, 32]
+BLOCK_SIZES = [1, 64, 128, 1024]
 
 def time_serial(
     timing_output_file: str,
@@ -44,10 +50,8 @@ def time_serial(
       results.append((thread_count, elapsed_time / REPETITIONS))
     except subprocess.CalledProcessError as e:
       print(f"\nSERIAL: Command failed for {thread_count} threads.\nError Code: {e.returncode}\noutput:\n{e.stderr}\n")
-      return
     except FileNotFoundError as e:
       print(f"SERIAL: Command or File not found: {e.filename}")
-      return
   with open(timing_output_file, "w+") as csv_file:
     csv_writer = csv.DictWriter(csv_file, fieldnames=[THREAD_COUNT_HEADER, EXECUTION_TIME_HEADER])
     csv_writer.writeheader()
@@ -81,10 +85,8 @@ def time_omp(
       results.append((thread_count, elapsed_time / REPETITIONS))
     except subprocess.CalledProcessError as e:
       print(f"\OMP: Command failed for {thread_count} threads.\nError Code: {e.returncode}\noutput:\n{e.stderr}\n")
-      return
     except FileNotFoundError as e:
       print(f"OMP: Command or File not found: {e.filename}")
-      return
   with open(timing_output_file, "w+") as csv_file:
     csv_writer = csv.DictWriter(csv_file, fieldnames=[THREAD_COUNT_HEADER, EXECUTION_TIME_HEADER])
     csv_writer.writeheader()
@@ -140,6 +142,41 @@ def time_mpi(
         TOTAL_PROCESSES_PER_NODE_HEADER: f"{result[0] * node_count}"
       })
 
+def time_cuda(
+  timing_output_file
+):
+  print("timing CUDA...")
+  results = []
+  for block_size in BLOCK_SIZES:
+    print(f"thread count: {block_size}")
+    try:
+      # os.chmod(timing_output_file, 0o777)
+      elapsed_time = 0
+      for _ in range(REPETITIONS):
+        start_time = time.perf_counter()
+        subprocess.run(
+          [OMP_EXECUTABLE, str(block_size)],
+          stdout=None,
+          check=True,
+          stderr=subprocess.STDOUT,
+        )
+        end_time = time.perf_counter()
+        elapsed_time += end_time - start_time
+      results.append((block_size, elapsed_time / REPETITIONS))
+    except subprocess.CalledProcessError as e:
+      print(f"\OMP: Command failed for {block_size} block size.\nError Code: {e.returncode}\noutput:\n{e.stderr}\n")
+    except FileNotFoundError as e:
+      print(f"OMP: Command or File not found: {e.filename}")
+  with open(timing_output_file, "w+") as csv_file:
+    csv_writer = csv.DictWriter(csv_file, fieldnames=[BLOCK_SIZE_HEADER, EXECUTION_TIME_HEADER])
+    csv_writer.writeheader()
+    for result in results:
+      csv_writer.writerow({
+        BLOCK_SIZE_HEADER: f"{result[0]}",
+        EXECUTION_TIME_HEADER: f"{result[1]}",
+      })
+  return
+
 def parse_args():
   parser = argparse.ArgumentParser()
 
@@ -181,7 +218,7 @@ def main():
   elif args.target == "mpi":
     time_mpi(args.output, int(args.nodes))
   elif args.target == "cuda":
-    pass
+    time_cuda(args.output)
   elif args.target == "cuda_mpi":
     print("CUDA + MPI not yet implemented")
 

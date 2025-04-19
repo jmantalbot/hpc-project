@@ -63,17 +63,27 @@ void writeClusterData(std::string inputFilepath, std::string outputFilepath, std
 }
 
 int main(int argc, char *argv[]) {
-	const std::string INPUT_FILE = "data/spotify_short.csv";
+	int blockSize = 256;
+	if (argc != 2) {
+		std::cout << "CUDA target did not receive a number of threads, defaulting to 256.";
+	}
+	else {
+		blockSize = std::stoi(argv[1]);
+	}
+	if (blockSize > 1024) {
+		std::cout << "blockSize cannot be greater than 1024, setting to 1024.";
+	}
+	const std::string INPUT_FILE = "data/spotify.csv";
 	const std::string OUTPUT_FILE = "data/spotify_clusters.csv";
 	std::cout << "Reading input data..." << std::endl;
-	std::vector<Point> points = readInputData("data/spotify_short.csv");
+	std::vector<Point> points = readInputData(INPUT_FILE);
 	std::cout << "Done. " << points.size() << " points loaded." << std::endl;
 
 	// clustering!
 	const int k = 5;
 	const int maxEpochs = 200;
 	std::cout << "Determining clusters with k = " << k << "..." << std::endl;
-	kMeansCluster(&points, maxEpochs, k);
+	kMeansCluster(&points, maxEpochs, k, blockSize);
 	std::cout << "Done." << std::endl;
 
 	//write output to csv

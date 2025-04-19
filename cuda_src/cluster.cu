@@ -76,7 +76,7 @@ void updateCentroids(float* centroids, float* sums, int* counts, int k, int d) {
  *   int maxEpochs // in
  *   int k // in
  */
-void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
+void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k, int blockSize){
     //bounds checking
     if (points->empty() || k <= 0 || maxEpochs <= 0) return;
     size_t num_points = points->size();
@@ -115,8 +115,8 @@ void kMeansCluster(std::vector<Point>* points, int maxEpochs, int k){
     cudaMemcpy(d_clusters, h_clusters, num_points * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_minDistances, h_minDistances, num_points * sizeof(float), cudaMemcpyHostToDevice);
 
-    const int blockSize = BLOCK_SIZE;
-    const int gridSize = (num_points + blockSize - 1) / blockSize;
+    // const int blockSize = block_size;
+    int gridSize = (num_points + blockSize - 1) / blockSize;
     int h_changed = -1;
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
         if (h_changed == 0) {
