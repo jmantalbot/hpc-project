@@ -5,7 +5,6 @@
 #include "point.hpp"
 #include "cluster.hpp"
 #include <map>
-#include <omp.h>
 #define THREAD_COUNT 5
 
 std::vector<Point> readInputData(std::string filepath) {
@@ -30,13 +29,11 @@ std::vector<Point> readInputData(std::string filepath) {
 
 	size_t row_count = doc.GetRowCount();
 	std::vector<Point> input_data(row_count);
-	#pragma omp parallel for
 	for (int row_idx = 0; row_idx < static_cast<int>(row_count); row_idx++) {
 		//for each row
 		std::vector<std::string> row = doc.GetRow<std::string>(row_idx);
 		std::vector<float> coordinates;
 		coordinates.reserve(FEATURE_KEYS.size());
-                #pragma omp parallel for
 		for (size_t feature_idx = 0; feature_idx < FEATURE_KEYS.size(); feature_idx++) {
 			std::string feature = doc.GetCell<std::string>(FEATURE_KEYS[feature_idx], row_idx);
 			//try to convert the feature to a float. Expecting strings to look like integers, floats, or boolean "True"/"False"
@@ -57,7 +54,6 @@ std::vector<Point> readInputData(std::string filepath) {
 
 void writeClusterData(std::string inputFilepath, std::string outputFilepath, std::vector<Point>* points) {
 	std::vector<int> clusters(points->size());
-	#pragma omp parallel for
 	for (int i = 0; i < static_cast<int>(points->size()); i++) {
 		clusters[i] = points->at(i).cluster;
 	}
@@ -67,18 +63,27 @@ void writeClusterData(std::string inputFilepath, std::string outputFilepath, std
 }
 
 int main(int argc, char *argv[]) {
-	const std::string INPUT_FILE = "data/spotify_short.csv";
+	int blockSize = 256;
+	if (argc != 2) {
+		std::cout << "CUDA target did not receive a number of threads, defaulting to 256.";
+	}
+	else {
+		blockSize = std::stoi(argv[1]);
+	}
+	if (blockSize > 1024) {
+		std::cout << "blockSize cannot be greater than 1024, setting to 1024.";
+	}
+	const std::string INPUT_FILE = "data/spotify.csv";
 	const std::string OUTPUT_FILE = "data/spotify_clusters.csv";
-        omp_set_num_threads(THREAD_COUNT);
 	std::cout << "Reading input data..." << std::endl;
-	std::vector<Point> points = readInputData("data/spotify_short.csv");
+	std::vector<Point> points = readInputData(INPUT_FILE);
 	std::cout << "Done. " << points.size() << " points loaded." << std::endl;
 
 	// clustering!
 	const int k = 5;
 	const int maxEpochs = 200;
 	std::cout << "Determining clusters with k = " << k << "..." << std::endl;
-	kMeansCluster(&points, maxEpochs, k);
+	kMeansCluster(&points, maxEpochs, k, blockSize);
 	std::cout << "Done." << std::endl;
 
 	//write output to csv

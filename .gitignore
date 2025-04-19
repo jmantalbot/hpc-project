@@ -6,3 +6,5 @@ data/
 !data/spotify.csv
 boost*
 TODO.txt
+scaling_study/results
+scaling_study/logs

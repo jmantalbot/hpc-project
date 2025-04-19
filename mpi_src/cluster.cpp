@@ -103,21 +103,6 @@ void kMeansCluster(
 
     //limit the number of epochs -- prevents infinite loops.
     for (int epoch = 0; epoch < maxEpochs; epoch++) {
-//        if(world.rank() == 0) {
-//             std::cout << "MPI EPOCH " << epoch << " Centroids:\n";
-//             for (int i = 0; i < k; i++) {
-//                 std::cout << "  Centroid " << i << ": (";
-//                 for (size_t d= 0; d < centroids->at(i).coordinates.size(); d++) {
-//                     std::cout << std::fixed << std::setprecision(6) << centroids->at(i).coordinates[d];
-//                     if (d < centroids->at(i).coordinates.size() - 1) std::cout << ", ";
-//                 }
-//                 std::cout <<")\n";
-//            }
-//            std::cout<<std::endl;
-//        }
-
-
-
         //broadcast updated centroids at start of each epoch.
         boost::mpi::broadcast(world, centroids->data(), k, 0);
 

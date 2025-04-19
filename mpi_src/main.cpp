@@ -78,12 +78,12 @@ int main(int argc, char *argv[]) {
 	const int k = 5;
 	const int maxEpochs = 200;
 
-	const std::string INPUT_FILE = "data/spotify_short.csv";
+	const std::string INPUT_FILE = "data/spotify.csv";
 	const std::string OUTPUT_FILE = "data/spotify_clusters.csv";
 	std::vector<Point> points;
 	if (world.rank() == 0) {
 		std::cout << "Reading input data..." << std::endl;
-		points = readInputData("data/spotify_short.csv");
+		points = readInputData(INPUT_FILE);
 		std::cout << "Done. " << points.size() << " points loaded." << std::endl;
 	}
 
