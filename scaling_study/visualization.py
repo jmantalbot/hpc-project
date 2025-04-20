@@ -21,6 +21,7 @@ class ClusteringData:
     self.z_label = z_label
   
   def __colors(self):
+    random.seed(100)
     possible_colors = {}
     for i in range(len(self.all_clusters)):
       possible_colors[self.all_clusters[i]] = (
@@ -89,7 +90,7 @@ def parseargs():
     "--axis_x",
     help="Feature to use as the X axis",
     type=str,
-    default="danceability",
+    default="tempo",
   )
   parser.add_argument(
     "--axis_y",
@@ -101,7 +102,7 @@ def parseargs():
     "--axis_z",
     help="Feature to use as the Z axis",
     type=str,
-    default="key",
+    default="acousticness",
   )
   return parser.parse_args()
 

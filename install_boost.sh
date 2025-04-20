@@ -5,7 +5,7 @@ if [ -d boost_1_88_0 ]; then
 else
   echo "Installing boost..."
   wget https://archives.boost.io/release/1.88.0/source/boost_1_88_0.tar.bz2
-  tar --bzip2 -xf boost_1_88_0.tar.bz2
+  tar --bzip2 -xvf boost_1_88_0.tar.bz2
   cd boost_1_88_0
   ./bootstrap.sh --prefix="./" --with-libraries=mpi,serialization
   echo "using mpi ;" >> project-config.jam
