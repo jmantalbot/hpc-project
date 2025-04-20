@@ -7,8 +7,8 @@
 #SBATCH --overcommit
 #SBATCH -o scaling_study/logs/slurmjob-%j.out-%N
 #SBATCH -e scaling_study/logs/slurmjob-%j.err-%N
-#SBATCH --mem-per-cpu=8000M
 
+# If this is not working, change to running on notchpeak-gpu with the option --mem-per-cpu=8000
 
 # number of nodes determined by command line (sbatch --nodes=<number_of_nodes>)
 
