@@ -4,7 +4,7 @@ import time
 import subprocess
 import csv
 
-REPETITIONS = 1 # TODO: change to a higher number
+REPETITIONS = 5
 
 SERIAL_EXECUTABLE = "./build/genre_reveal_party"
 OMP_EXECUTABLE = "./build/genre_reveal_party_omp"
@@ -17,6 +17,8 @@ PROCESSES_PER_NODE_HEADER = "processes_per_node"
 TOTAL_PROCESSES_PER_NODE_HEADER = "total_processes"
 BLOCK_SIZE_HEADER = "block_size"
 EXECUTION_TIME_HEADER = "execution_time"
+
+DATA_FILE = "data/spotify.csv"
 
 
 # OMP_THREAD_COUNTS = [1, 16, 32, 48, 64, 128, 256, 1024]
@@ -40,7 +42,7 @@ def time_serial(
       for _ in range(REPETITIONS):
         start_time = time.perf_counter()
         subprocess.run(
-          [SERIAL_EXECUTABLE],
+          [SERIAL_EXECUTABLE, DATA_FILE],
           stdout=None,
           check=True,
           stderr=subprocess.STDOUT,
@@ -75,7 +77,7 @@ def time_omp(
       for _ in range(REPETITIONS):
         start_time = time.perf_counter()
         subprocess.run(
-          [OMP_EXECUTABLE, str(thread_count)],
+          [OMP_EXECUTABLE, DATA_FILE, str(thread_count)],
           stdout=None,
           check=True,
           stderr=subprocess.STDOUT,
@@ -119,7 +121,8 @@ def time_mpi(
             "--display-map",
             "--map-by",
             ":OVERSUBSCRIBE",
-            MPI_EXECUTABLE
+            MPI_EXECUTABLE,
+            DATA_FILE
           ],
           stdout=None,
           check=True,
@@ -155,7 +158,7 @@ def time_cuda(
       for _ in range(REPETITIONS):
         start_time = time.perf_counter()
         subprocess.run(
-          [OMP_EXECUTABLE, str(block_size)],
+          [CUDA_EXECUTABLE, DATA_FILE, str(block_size)],
           stdout=None,
           check=True,
           stderr=subprocess.STDOUT,

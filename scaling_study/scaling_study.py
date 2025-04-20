@@ -58,7 +58,7 @@ def queue_omp_job():
 def queue_mpi_jobs():
   print("queueing jobs for MPI target...")
   # 1, 2, 3, and 4 nodes
-  for node_count in range(1, 3):
+  for node_count in range(1, 5):
     command = [
       "sbatch",
       f"--nodes={node_count}",
@@ -149,12 +149,9 @@ def plot_mpi_results():
             float(row[EXECUTION_TIME_HEADER])
           )
         )
-    try:
-      results.sort(key=lambda x: x[0])
-      x, y = zip(*results)
-      plt.plot(x, y, label=f"MPI {node_count} Nodes")
-    except ValueError:
-      print(f"Unable to plot MPI with {node_count} nodes. MPI likely crashed due to memory overuse.")
+    results.sort(key=lambda x: x[0])
+    x, y = zip(*results)
+    plt.plot(x, y, label=f"MPI {node_count} Nodes")
   
 def plot_cuda_results():
   results = []
@@ -177,26 +174,38 @@ def plot_results():
   plt.clf()
   # Serial and OMP in one plot
   setup_plot("Number of threads", "Time (s)", False)
-  plot_serial_results()
-  plot_omp_results()
+  try:
+    plot_serial_results()
+  except ValueError:
+    print("failed to plot serial.")
+  try:
+    plot_omp_results()
+  except ValueError:
+    print("failed to plot omp.")
   save_plot(os.path.join(RESULTS_DIRECTORY, "serial_omp_results.png"))
   plt.clf()
 
   # MPI Plot
   setup_plot("Number of Processes Per Node", "Time (s)", False)
-  plot_mpi_results()
+  try:
+    plot_mpi_results()
+  except ValueError:
+    print("failed to plot mpi.")
   save_plot(os.path.join(RESULTS_DIRECTORY, "mpi_results.png"))
   plt.clf()
 
   # # CUDA Plot
   setup_plot("Grid Width", "Time (s)", False)
-  plot_cuda_results()
+  try:
+    plot_cuda_results()
+  except ValueError:
+    print("failed to plot cuda.")
   save_plot(os.path.join(RESULTS_DIRECTORY, "cuda_results.png"))
   plt.clf()
 
   # CUDA + MPI Plot
   setup_plot("Unsure yet", "Time (s)", False)
-  plot_cuda_mpi_results()
+  # plot_cuda_mpi_results()
   save_plot(os.path.join(RESULTS_DIRECTORY, "cuda_mpi_results.png"))
 
 def save_plot(filepath: str = "study_results.png"):
@@ -206,7 +215,7 @@ def save_plot(filepath: str = "study_results.png"):
 def main():
   print("Starting scaling study.")
   os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
-  # run_all_jobs()
+  run_all_jobs()
   plot_results()
 
 if __name__ == "__main__":

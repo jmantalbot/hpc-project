@@ -90,7 +90,7 @@ def parseargs():
     "--axis_x",
     help="Feature to use as the X axis",
     type=str,
-    default="danceability",
+    default="tempo",
   )
   parser.add_argument(
     "--axis_y",
@@ -102,7 +102,7 @@ def parseargs():
     "--axis_z",
     help="Feature to use as the Z axis",
     type=str,
-    default="key",
+    default="acousticness",
   )
   return parser.parse_args()
 

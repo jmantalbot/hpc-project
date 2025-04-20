@@ -41,7 +41,7 @@ There are some options:
   - Results will be in the `scaling_study/results/` directory
   - Logs will be in the `scaling_study/logs/` directory
 
-You can visualize the results after running any of the scripts by running `python scaling_study/visualization.py <data_file.csv>` and give the keys for the axes. The columns can be easily viewed in `data/spotify_short.csv`
+You can visualize the results after running any of the scripts by running `python scaling_study/visualization.py <data_file.csv>` and give the keys for the axes. The columns can be easily viewed in `data/spotify_short.csv`. The results are saved to `plt.png` in your working directory (likely the repo root).
 
 ## Dataset
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time 0:30:00
-#SBATCH --partition=notchpeak-gpu
-#SBATCH --account=notchpeak-gpu
+#SBATCH --partition=notchpeak-freecycle
+#SBATCH --account=usucs5030
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --overcommit

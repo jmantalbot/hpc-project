@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time 0:30:00
+#SBATCH --time 1:00:00
 #SBATCH --partition=notchpeak-freecycle
 #SBATCH --account=usucs5030
 #SBATCH --ntasks-per-node=4
@@ -7,6 +7,7 @@
 #SBATCH --overcommit
 #SBATCH -o scaling_study/logs/slurmjob-%j.out-%N
 #SBATCH -e scaling_study/logs/slurmjob-%j.err-%N
+
 
 # number of nodes determined by command line (sbatch --nodes=<number_of_nodes>)
 
