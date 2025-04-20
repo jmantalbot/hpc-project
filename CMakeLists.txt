@@ -27,13 +27,14 @@ include_directories(${Boost_INCLUDE_DIRS})
 # -- Serial Target --
 set(SERIAL_TARGET genre_reveal_party)
 
-set(SOURCE_DIR serial_src)
-set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cluster.hpp)
-set(SOURCE_FILES ${SOURCE_DIR}/cluster.cpp)
+set(SOURCE_DIR src)
+set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/shared_cluster.hpp)
+set(SOURCE_FILES ${SOURCE_DIR}/shared_cluster.cpp)
 set(MAIN_FILE ${SOURCE_DIR}/main.cpp)
 add_executable(${SERIAL_TARGET} ${HEADER_FILES} ${SOURCE_FILES} ${MAIN_FILE})
 
 set_property(TARGET ${SERIAL_TARGET} PROPERTY CXX_STANDARD ${CMAKE_CXX_STANDARD})
+target_compile_definitions(${SERIAL_TARGET} PRIVATE SERIAL_TARGET)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${SERIAL_TARGET} PRIVATE /W4 /permissive-)
@@ -46,13 +47,14 @@ target_link_libraries(${SERIAL_TARGET} rapidcsv)
 # -- OMP Target --
 set(OMP_TARGET genre_reveal_party_omp)
 
-set(SOURCE_DIR omp_src)
-set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cluster.hpp)
-set(SOURCE_FILES ${SOURCE_DIR}/cluster.cpp)
+set(SOURCE_DIR src)
+set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/shared_cluster.hpp)
+set(SOURCE_FILES ${SOURCE_DIR}/shared_cluster.cpp)
 set(MAIN_FILE ${SOURCE_DIR}/main.cpp)
 add_executable(${OMP_TARGET} ${HEADER_FILES} ${SOURCE_FILES} ${MAIN_FILE})
 
 set_property(TARGET ${OMP_TARGET} PROPERTY CXX_STANDARD ${CMAKE_CXX_STANDARD})
+target_compile_definitions(${OMP_TARGET} PRIVATE OMP_TARGET)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${OMP_TARGET} PRIVATE /W4 /permissive-)
@@ -66,13 +68,14 @@ target_link_libraries(${OMP_TARGET} rapidcsv OpenMP::OpenMP_CXX)
 set(MPI_TARGET genre_reveal_party_mpi)
 
 
-set(SOURCE_DIR mpi_src)
-set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cluster.hpp)
-set(SOURCE_FILES ${SOURCE_DIR}/cluster.cpp)
+set(SOURCE_DIR src)
+set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/distributed_cluster.hpp)
+set(SOURCE_FILES ${SOURCE_DIR}/distributed_cluster.cpp)
 set(MAIN_FILE ${SOURCE_DIR}/main.cpp)
 add_executable(${MPI_TARGET} ${HEADER_FILES} ${SOURCE_FILES} ${MAIN_FILE})
 
 set_property(TARGET ${MPI_TARGET} PROPERTY CXX_STANDARD ${CMAKE_CXX_STANDARD})
+target_compile_definitions(${MPI_TARGET} PRIVATE MPI_TARGET)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${MPI_TARGET} PRIVATE /W4 /permissive-)
@@ -88,11 +91,12 @@ set(CUDA_TARGET genre_reveal_party_cuda)
 enable_language(CUDA)
 set(CMAKE_CUDA_STANDARD 11)
 
-set(SOURCE_DIR cuda_src)
-set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cluster.hpp)
-set(SOURCE_FILES ${SOURCE_DIR}/cluster.cu)
+set(SOURCE_DIR src)
+set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cuda_cluster.hpp)
+set(SOURCE_FILES ${SOURCE_DIR}/cuda_cluster.cu)
 set(MAIN_FILE ${SOURCE_DIR}/main.cpp)
 add_executable(${CUDA_TARGET} ${HEADER_FILES} ${SOURCE_FILES} ${MAIN_FILE})
+target_compile_definitions(${CUDA_TARGET} PRIVATE CUDA_TARGET)
 
 set_property(TARGET ${CUDA_TARGET} PROPERTY CUDA_ARCHITECTURES "native")
 set_property(TARGET ${CUDA_TARGET} PROPERTY CUDA_SEPARABLE_COMPILATION ON)

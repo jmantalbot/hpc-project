@@ -149,10 +149,13 @@ def plot_mpi_results():
             float(row[EXECUTION_TIME_HEADER])
           )
         )
-    results.sort(key=lambda x: x[0])
-    x, y = zip(*results)
-    plt.plot(x, y, label=f"MPI {node_count} Nodes")
-
+    try:
+      results.sort(key=lambda x: x[0])
+      x, y = zip(*results)
+      plt.plot(x, y, label=f"MPI {node_count} Nodes")
+    except ValueError:
+      print(f"Unable to plot MPI with {node_count} nodes. MPI likely crashed due to memory overuse.")
+  
 def plot_cuda_results():
   results = []
   with open(CUDA_TIMING_FILE, "r", encoding="utf-8") as timing_file:
@@ -203,7 +206,7 @@ def save_plot(filepath: str = "study_results.png"):
 def main():
   print("Starting scaling study.")
   os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
-  run_all_jobs()
+  # run_all_jobs()
   plot_results()
 
 if __name__ == "__main__":

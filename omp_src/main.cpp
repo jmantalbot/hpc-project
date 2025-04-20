@@ -67,6 +67,10 @@ void writeClusterData(std::string inputFilepath, std::string outputFilepath, std
 }
 
 int main(int argc, char *argv[]) {
+
+	#ifdef OMP_TARGET
+		std::cout << "I AM THE OMP TARGET" << std::endl;
+	#endif
 	int thread_count = 5;
 	if (argc != 2) {
 		std::cout << "OMP target did not receive a number of threads, defaulting to 5." << std::endl;

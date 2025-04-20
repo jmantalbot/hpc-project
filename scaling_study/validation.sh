@@ -2,16 +2,16 @@
 
 mkdir -p data/out
 
-./build/genre_reveal_party
+./build/genre_reveal_party data/spotify_short.csv
 mv data/spotify_clusters.csv data/out/serial.csv
 
-./build/genre_reveal_party_omp 13
+./build/genre_reveal_party_omp data/spotify_short.csv 13
 mv data/spotify_clusters.csv data/out/omp.csv
 
-mpirun -n 17 ./build/genre_reveal_party_mpi
+mpirun -n 17 ./build/genre_reveal_party_mpi data/spotify_short.csv
 mv data/spotify_clusters.csv data/out/mpi_17.csv
 
-./build/genre_reveal_party_cuda
+./build/genre_reveal_party_cuda data/spotify_short.csv
 mv data/spotify_clusters.csv data/out/cuda.csv
 
 if [[ -z "$(diff data/out/serial.csv data/out/omp.csv)" ]]; then
