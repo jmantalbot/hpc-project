@@ -5,6 +5,10 @@ set(CMAKE_BUILD_TYPE Debug)
 enable_language(CUDA)
 set(CMAKE_CUDA_STANDARD 11)
 
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES all-major)
+endif()
+
 include(FetchContent)
 
 set(PROJECT_NAME genre_reveal_party)
@@ -17,7 +21,7 @@ set(OMP_TARGET genre_reveal_party_omp)
 set(CUDA_TARGET genre_reveal_party_cuda)
 set(MPI_CUDA_TARGET genre_reveal_party_mpi_cuda)
 
-project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX)
+project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX C CUDA)
 
 set(SOURCE_DIR src)
 set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cluster.hpp)
@@ -32,9 +36,9 @@ set(MAIN_FILE ${SOURCE_DIR}/main.cpp)
 add_executable(${MPI_TARGET} ${HEADER_FILES} ${SOURCE_FILES} ${MAIN_FILE})
 
 set(SOURCE_DIR mpi_cuda_src)
-set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cluster.hpp ${SOURCE_DIR}/cluster_cuda.hpp)
-set(SOURCE_FILES ${SOURCE_DIR}/cluster.cpp ${SOURCE_DIR}/cluster_cuda.cu)
-set(MAIN_FILE ${SOURCE_DIR}/main.cpp)
+set(HEADER_FILES ${SOURCE_DIR}/cluster.h)
+set(SOURCE_FILES ${SOURCE_DIR}/cluster.cu)
+set(MAIN_FILE ${SOURCE_DIR}/main.c)
 add_executable(${MPI_CUDA_TARGET} ${HEADER_FILES} ${SOURCE_FILES} ${MAIN_FILE})
 
 set(SOURCE_DIR cudasrc)
@@ -79,18 +83,9 @@ endif()
 target_compile_options(${CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-O3>)
 target_compile_options(${CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--default-stream per-thread>)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(${MPI_CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/W4>)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(${MPI_CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options -Wall,-Wextra,-pedantic>)
-endif()
-target_compile_options(${MPI_CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-O3>)
-target_compile_options(${MPI_CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--default-stream per-thread>)
-
 target_link_libraries(${CUDA_TARGET} rapidcsv)
 target_link_libraries(${SERIAL_TARGET} rapidcsv)
 target_link_libraries(${MPI_TARGET} rapidcsv)
-target_link_libraries(${MPI_CUDA_TARGET} rapidcsv)
 target_link_libraries(${OMP_TARGET} rapidcsv)
 
 find_package(MPI REQUIRED)
