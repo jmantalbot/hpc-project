@@ -48,6 +48,14 @@ You can visualize the results after running any of the scripts by running `pytho
 
 [CSV of 12 million spotify songs](https://www.kaggle.com/datasets/rodolfofigueroa/spotify-12m-songs)
 
+## Visualization
+
+Run `python scaling_study/visualization.py` after running any of the implementations. Use `python scaling_study/visualization --help` to see how to use it. The default path for the csv data to use is `data/spotify_clusters.csv`. This output is provided in the Canvas submission. It will write the plot to `plt.png`. An example of the visualization is provided alongside the Canvas submission as `viz.png`.
+
+## Validation
+
+Run `bash scaling_study/validation.sh` to check that each of the implementations get the same results. It compares each implementation's result to that of the serial implementation using a truncated dataset of 500 points. It uses `diff` for this validation.
+
 ## Approach Descriptions & Analysis
 
 ### Serial Implementation
@@ -92,6 +100,8 @@ Matthew Hill
 
 ### CUDA Implementation (Shared memory GPU)
 
+Josh Talbot
+
 - CUDA parallelization was implemented in our cluster.cu file. We used kernal functions for computing the distances, the computation of summations, and updating the centroids.
 - The CUDA implementation is pretty different from the OMP and Serial Implementations, but the results are much the same.
   - We set up some random centroids
@@ -105,6 +115,8 @@ Brigham Campbell
 - 
 
 ## Scaling Study
+
+Matthew Hill
 
 Run the study with `python scaling_study/scaling_study.py`. This will run each implemenation as SLURM batch jobs, time their runs with different amounts of resources/threads/processes/block size, and plot the results. Results are saved to `scaling_study/results`. Logs are saved to `scaling_study/logs`
 
@@ -129,16 +141,9 @@ Serial is consistent across a varied number of results at about 70 seconds.
 
 OMP is also at about 70 seconds with one thread but then quickly decreases to around 30 seconds for all other thread counts.
 
-MPI seems to actually be slower when run on more nodes. 4 nodes was the slowest while 3 nodes were similar. 3 nodes and 1 node had similar timings. For all node counts, having 8 processes per node was the most performant. There seems to be a great deal of overhead with MPI causing too many processes and too many nodes to slow down the execution rather than speed it up.
+MPI seems to actually be slower when run on more nodes. 4 nodes was the slowest while 3 nodes were similar. 3 nodes and 1 node had similar timings. For all node counts, having 8 processes per node was the most performant. There seems to be a great deal of overhead with MPI causing too many processes and too many nodes to slow down the execution rather than speed it up. 8 processes being the best makes some sense as the jobs are only requesting 4 tasks at one cpu per task. With two logical processors per CPU, that gives 8 cores, so 8 processes being the peak is in line with what is requested. This number of cpus is requested so that the job will be queued and run in a reasonable amount of time.
  
-CUDA had the best results. As the block size increase, the time taken decreased linearly.
+CUDA had very strong results. As the block size increase, the time taken decreased linearly.
 
-CUDA with MPI not yet tested.
+CUDA with MPI is the most performant implementation, but the performance decreases when the number of nodes and processes is increased. This suggests that the performance overhead outweighs the benefit of multiple processing for this implemenation.
 
-## Visualization
-
-Run `python scaling_study/visualization.py` after running any of the implementations. Use `python scaling_study/visualization --help` to see how to use it. The default path for the csv data to use is `data/spotify_clusters.csv`. This output is provided in the Canvas submission. It will write the plot to `plt.png`. An example of the visualization is provided alongside the Canvas submission as `viz.png`.
-
-## Validation
-
-Run `bash scaling_study/validation.sh` to check that each of the implementations get the same results. It compares each implementation's result to that of the serial implementation using a truncated dataset of 500 points. It uses `diff` for this validation.

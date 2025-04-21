@@ -14,6 +14,9 @@ mv data/spotify_clusters.csv data/out/mpi_17.csv
 ./build/genre_reveal_party_cuda data/spotify_short.csv
 mv data/spotify_clusters.csv data/out/cuda.csv
 
+./build/genre_reveal_party_mpi_cuda data/spotify_short.csv
+mv data/spotify_clusters.csv data/out/mpi_cuda.csv
+
 if [[ -z "$(diff data/out/serial.csv data/out/omp.csv)" ]]; then
   echo "serial and omp outputs are the same 🎉"
 else
@@ -30,4 +33,10 @@ if [[ -z "$(diff data/out/serial.csv data/out/cuda.csv)" ]]; then
   echo "serial and cuda outputs are the same 🎉"
 else
   echo "ERROR: serial and cuda outputs are different. Run `diff data/out/serial.csv data/out/cuda.csv` to see differences"
+fi
+
+if [[ -z "$(diff data/out/serial.csv data/out/mpi_cuda.csv)" ]]; then
+  echo "serial and mpi+cuda outputs are the same 🎉"
+else
+  echo "ERROR: serial and mpi+cuda outputs are different. Run `diff data/out/serial.csv data/out/mpi_cuda.csv` to see differences"
 fi

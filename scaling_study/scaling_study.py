@@ -83,15 +83,28 @@ def queue_cuda_job():
   )
 
 def queue_cuda_mpi_jobs():
-  print("CUDA with MPI not yet implemented.")
+  print("queueing job for CUDA+MPI target")
+  # for 1, 2, and 3 nodes
+  # running on 4 nodes causes it to use notch[001-004] which gets my (Matthew Hill) account in trouble.
+  for node_count in range(1, 4):
+    command = [
+      "sbatch",
+      f"--nodes={node_count}",
+      "scaling_study/slurm_run_cuda_mpi.sh",
+    ]
+    subprocess.run(command,
+      stdout=None,
+      check=True,
+      stderr=subprocess.STDOUT
+    )
 
 def run_all_jobs():
   try:
     # queue jobs
-    queue_serial_job()
-    queue_omp_job()
-    queue_mpi_jobs()
-    queue_cuda_job()
+    # queue_serial_job()
+    # queue_omp_job()
+    # queue_mpi_jobs()
+    # queue_cuda_job()
     queue_cuda_mpi_jobs()
     # wait until all jobs are done
     while subprocess.run(["squeue", "-u", f"{os.getenv('USER')}", "--noheader"], capture_output=True, text=True).stdout.strip():
@@ -164,7 +177,23 @@ def plot_cuda_results():
   plt.plot(x, y, label="CUDA")
 
 def plot_cuda_mpi_results():
-  pass
+  for node_count in range(1, 5):
+    filepath = os.path.join(RESULTS_DIRECTORY, f"cuda_mpi_timing_{node_count}.csv")
+    if not os.path.exists(filepath):
+      continue
+    results = []
+    with open(filepath, "r", encoding="utf-8") as timing_file:
+      csv_reader = csv.DictReader(timing_file)
+      for row in csv_reader:
+        results.append(
+          (
+            int(row[PROCESSES_PER_NODE_HEADER]),
+            float(row[EXECUTION_TIME_HEADER])
+          )
+        )
+    results.sort(key=lambda x: x[0])
+    x, y = zip(*results)
+    plt.plot(x, y, label=f"CUDA+MPI {node_count} Nodes")
 
 def add_line_to_plot(x, y, label):
   plt.plot(x, y, label=label)
@@ -173,26 +202,26 @@ def add_line_to_plot(x, y, label):
 def plot_results():
   plt.clf()
   # Serial and OMP in one plot
-  setup_plot("Number of threads", "Time (s)", False)
-  try:
-    plot_serial_results()
-  except ValueError:
-    print("failed to plot serial.")
-  try:
-    plot_omp_results()
-  except ValueError:
-    print("failed to plot omp.")
-  save_plot(os.path.join(RESULTS_DIRECTORY, "serial_omp_results.png"))
-  plt.clf()
+  # setup_plot("Number of threads", "Time (s)", False)
+  # try:
+  #   plot_serial_results()
+  # except ValueError:
+  #   print("failed to plot serial.")
+  # try:
+  #   plot_omp_results()
+  # except ValueError:
+  #   print("failed to plot omp.")
+  # save_plot(os.path.join(RESULTS_DIRECTORY, "serial_omp_results.png"))
+  # plt.clf()
 
-  # MPI Plot
-  setup_plot("Number of Processes Per Node", "Time (s)", False)
-  try:
-    plot_mpi_results()
-  except ValueError:
-    print("failed to plot mpi.")
-  save_plot(os.path.join(RESULTS_DIRECTORY, "mpi_results.png"))
-  plt.clf()
+  # # MPI Plot
+  # setup_plot("Number of Processes Per Node", "Time (s)", False)
+  # try:
+  #   plot_mpi_results()
+  # except ValueError:
+  #   print("failed to plot mpi.")
+  # save_plot(os.path.join(RESULTS_DIRECTORY, "mpi_results.png"))
+  # plt.clf()
 
   # # CUDA Plot
   setup_plot("Grid Width", "Time (s)", False)
@@ -204,8 +233,8 @@ def plot_results():
   plt.clf()
 
   # CUDA + MPI Plot
-  setup_plot("Unsure yet", "Time (s)", False)
-  # plot_cuda_mpi_results()
+  setup_plot("Number of processes per node", "Time (s)", False)
+  plot_cuda_mpi_results()
   save_plot(os.path.join(RESULTS_DIRECTORY, "cuda_mpi_results.png"))
 
 def save_plot(filepath: str = "study_results.png"):

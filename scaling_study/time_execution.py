@@ -4,13 +4,13 @@ import time
 import subprocess
 import csv
 
-REPETITIONS = 3
+REPETITIONS = 1
 
 SERIAL_EXECUTABLE = "./build/genre_reveal_party"
 OMP_EXECUTABLE = "./build/genre_reveal_party_omp"
 MPI_EXECUTABLE = "./build/genre_reveal_party_mpi"
 CUDA_EXECUTABLE = "./build/genre_reveal_party_cuda"
-CUDA_MPI_EXECUTABLE = "./build/genre_reveal_party_cuda_mpi"
+CUDA_MPI_EXECUTABLE = "./build/genre_reveal_party_mpi_cuda"
 
 THREAD_COUNT_HEADER = "thread_count"
 PROCESSES_PER_NODE_HEADER = "processes_per_node"
@@ -23,7 +23,8 @@ DATA_FILE = "data/spotify.csv"
 
 OMP_THREAD_COUNTS = [1, 16, 32, 64, 1024]
 MPI_PROCESSES_PER_NODE = [1, 8, 16, 32]
-BLOCK_SIZES = [1, 64, 128, 1024]
+BLOCK_SIZES = [1, 64, 128, 1023]
+MPI_CUDA_PROCESSES_PER_NODE = [1, 2, 3, 4]
 
 def time_serial(
     timing_output_file: str,
@@ -154,7 +155,7 @@ def time_cuda(
       for _ in range(REPETITIONS):
         start_time = time.perf_counter()
         subprocess.run(
-          [CUDA_EXECUTABLE, DATA_FILE, str(block_size)],
+          [CUDA_EXECUTABLE, "data/spotify_medium.csv", str(block_size)],
           stdout=None,
           check=True,
           stderr=subprocess.STDOUT,
@@ -163,9 +164,9 @@ def time_cuda(
         elapsed_time += end_time - start_time
       results.append((block_size, elapsed_time / REPETITIONS))
     except subprocess.CalledProcessError as e:
-      print(f"\OMP: Command failed for {block_size} block size.\nError Code: {e.returncode}\noutput:\n{e.stderr}\n")
+      print(f"\CUDA: Command failed for {block_size} block size.\nError Code: {e.returncode}\noutput:\n{e.stderr}\n")
     except FileNotFoundError as e:
-      print(f"OMP: Command or File not found: {e.filename}")
+      print(f"CUDA: Command or File not found: {e.filename}")
   with open(timing_output_file, "w+") as csv_file:
     csv_writer = csv.DictWriter(csv_file, fieldnames=[BLOCK_SIZE_HEADER, EXECUTION_TIME_HEADER])
     csv_writer.writeheader()
@@ -174,7 +175,54 @@ def time_cuda(
         BLOCK_SIZE_HEADER: f"{result[0]}",
         EXECUTION_TIME_HEADER: f"{result[1]}",
       })
-  return
+
+
+def time_cuda_mpi(
+  timing_output_file: str,
+  node_count: int,
+):
+  print(f"timing MPI with {node_count} nodes...")
+  results = []
+  for processes_per_node in MPI_CUDA_PROCESSES_PER_NODE:
+    total_process_count = processes_per_node * node_count
+    print(f"total process count: {total_process_count}")
+    try:
+      # os.chmod(timing_output_file, 0o777)
+      elapsed_time = 0
+      for _ in range(REPETITIONS):
+        start_time = time.perf_counter()
+        subprocess.run(
+          [
+            "mpirun",
+            "-n",
+            f"{total_process_count}",
+            "--display-map",
+            "--map-by",
+            ":OVERSUBSCRIBE",
+            CUDA_MPI_EXECUTABLE,
+            DATA_FILE
+          ],
+          stdout=None,
+          check=True,
+          stderr=subprocess.STDOUT,
+        )
+        end_time = time.perf_counter()
+        elapsed_time += end_time - start_time
+      results.append((processes_per_node, elapsed_time / REPETITIONS))
+    except subprocess.CalledProcessError as e:
+      print(f"\MPI: Command failed for {total_process_count} processes across {node_count} nodes.\nError Code: {e.returncode}\noutput:\n{e.stderr}\n")
+    except FileNotFoundError as e:
+      print(f"MPI: Command or File not found: {e.filename}")
+  with open(timing_output_file, "w+") as csv_file:
+    csv_writer = csv.DictWriter(csv_file, fieldnames=[PROCESSES_PER_NODE_HEADER, TOTAL_PROCESSES_PER_NODE_HEADER, EXECUTION_TIME_HEADER])
+    csv_writer.writeheader()
+    for result in results:
+      csv_writer.writerow({
+        PROCESSES_PER_NODE_HEADER: f"{result[0]}",
+        EXECUTION_TIME_HEADER: f"{result[1]}",
+        TOTAL_PROCESSES_PER_NODE_HEADER: f"{result[0] * node_count}"
+      })
+  
 
 def parse_args():
   parser = argparse.ArgumentParser()
@@ -219,7 +267,7 @@ def main():
   elif args.target == "cuda":
     time_cuda(args.output)
   elif args.target == "cuda_mpi":
-    print("CUDA + MPI not yet implemented")
+    time_cuda_mpi(args.output, int(args.nodes))
 
 if __name__ == main():
   main()
