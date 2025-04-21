@@ -4,72 +4,59 @@
 #include <cuda_runtime.h>
 #include "cluster.h"
 
-#define D 3  // x, y, z
 #define BLOCK_SIZE 256
 
-struct point {
-    int line_number;
-    float x;
-    float y;
-    float z;
-};
-
-// Compute Euclidean distance between point and centroid
-__device__ float distance(float* coords1, float* coords2) {
-    float dx = coords1[0] - coords2[0];
-    float dy = coords1[1] - coords2[1];
-    float dz = coords1[2] - coords2[2];
-    return sqrtf(dx * dx + dy * dy + dz * dz);
+__device__ float distance(const float* a, const float* b, int D) {
+    float dist = 0.0f;
+    for (int i = 0; i < D; ++i) {
+        float diff = a[i] - b[i];
+        dist += diff * diff;
+    }
+    return sqrtf(dist);
 }
 
-// Assign points to the closest centroid
 __global__ void computeAssignments(
-    float* coordinates,       // [num_points * 3]
-    float* centroids,         // [k * 3]
-    int* assignments,         // [num_points]
-    float* minDistances,      // [num_points]
-    int* changed_count,       // device-side counter
+    const float* coordinates,   // [num_points * D]
+    const float* centroids,     // [k * D]
+    int* assignments,           // [num_points]
+    float* minDistances,        // [num_points]
+    int* changed_count,
     int num_points,
-    int k
+    int k,
+    int D
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_points) return;
 
+    const float* point = &coordinates[idx * D];
     float min_dist = FLT_MAX;
-    int min_cluster = assignments[idx];
+    int min_cluster = -1;
 
-    float point[3] = {
-        coordinates[idx * D],
-        coordinates[idx * D + 1],
-        coordinates[idx * D + 2]
-    };
-
-    for (int i = 0; i < k; i++) {
-        float* centroid = &centroids[i * D];
-        float dist = distance(point, centroid);
+    for (int i = 0; i < k; ++i) {
+        const float* centroid = &centroids[i * D];
+        float dist = distance(point, centroid, D);
         if (dist < min_dist) {
             min_dist = dist;
             min_cluster = i;
         }
     }
 
-    if (min_dist < minDistances[idx]) {
-        minDistances[idx] = min_dist;
-        if (assignments[idx] != min_cluster) {
-            atomicAdd(changed_count, 1);
-            assignments[idx] = min_cluster;
-        }
+    if (assignments[idx] != min_cluster) {
+        atomicAdd(changed_count, 1);
+        assignments[idx] = min_cluster;
     }
+
+    minDistances[idx] = min_dist;
 }
 
-// Accumulate new centroid sums
 __global__ void accumulateCentroids(
-    float* coordinates,  // [num_points * 3]
-    int* assignments,    // [num_points]
-    float* sums,         // [k * 3]
-    int* counts,         // [k]
+    const float* coordinates,
+    const int* assignments,
+    float* sums,
+    int* counts,
     int num_points,
-    int k
+    int k,
+    int D
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_points) return;
@@ -77,31 +64,31 @@ __global__ void accumulateCentroids(
     int cluster = assignments[idx];
     if (cluster < 0 || cluster >= k) return;
 
-    atomicAdd(&sums[cluster * D + 0], coordinates[idx * D + 0]);
-    atomicAdd(&sums[cluster * D + 1], coordinates[idx * D + 1]);
-    atomicAdd(&sums[cluster * D + 2], coordinates[idx * D + 2]);
+    for (int d = 0; d < D; ++d) {
+        atomicAdd(&sums[cluster * D + d], coordinates[idx * D + d]);
+    }
     atomicAdd(&counts[cluster], 1);
 }
 
-// Compute new centroids
 __global__ void updateCentroids(
-    float* centroids,  // [k * 3]
-    float* sums,       // [k * 3]
-    int* counts,       // [k]
-    int k
+    float* centroids,
+    const float* sums,
+    const int* counts,
+    int k,
+    int D
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= k) return;
 
     int count = counts[i];
-    if (count > 0) {
-        centroids[i * D + 0] = sums[i * D + 0] / count;
-        centroids[i * D + 1] = sums[i * D + 1] / count;
-        centroids[i * D + 2] = sums[i * D + 2] / count;
+    if (count == 0) return;
+
+    for (int d = 0; d < D; ++d) {
+        centroids[i * D + d] = sums[i * D + d] / count;
     }
 }
 
-void run_kmeans_gpu(float* coords, int* assignments, float* centroids, int num_points, int k, int maxEpochs) {
+void run_kmeans_gpu(float* coords, int* assignments, float* centroids, int num_points, int k, int maxEpochs, int D) {
     float *d_coords, *d_centroids, *d_sums, *d_minDistances;
     int *d_assignments, *d_counts, *d_changed;
 
@@ -118,10 +105,7 @@ void run_kmeans_gpu(float* coords, int* assignments, float* centroids, int num_p
 
     cudaMemcpy(d_coords, coords, coord_size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_centroids, centroids, centroid_size, cudaMemcpyHostToDevice);
-
-
     cudaMemset(d_assignments, -1, num_points * sizeof(int));
-    cudaMemset(d_minDistances, 0x7F, num_points * sizeof(float)); // Set to FLT_MAX
 
     int h_changed = 1;
     int threads = BLOCK_SIZE;
@@ -130,7 +114,10 @@ void run_kmeans_gpu(float* coords, int* assignments, float* centroids, int num_p
 
     for (int epoch = 0; epoch < maxEpochs && h_changed > 0; epoch++) {
         cudaMemset(d_changed, 0, sizeof(int));
-        computeAssignments<<<blocks_points, threads>>>(d_coords, d_centroids, d_assignments, d_minDistances, d_changed, num_points, k);
+
+        computeAssignments<<<blocks_points, threads>>>(
+            d_coords, d_centroids, d_assignments, d_minDistances, d_changed,
+            num_points, k, D);
         cudaDeviceSynchronize();
 
         cudaMemcpy(&h_changed, d_changed, sizeof(int), cudaMemcpyDeviceToHost);
@@ -138,10 +125,13 @@ void run_kmeans_gpu(float* coords, int* assignments, float* centroids, int num_p
         cudaMemset(d_sums, 0, centroid_size);
         cudaMemset(d_counts, 0, k * sizeof(int));
 
-        accumulateCentroids<<<blocks_points, threads>>>(d_coords, d_assignments, d_sums, d_counts, num_points, k);
+        accumulateCentroids<<<blocks_points, threads>>>(
+            d_coords, d_assignments, d_sums, d_counts,
+            num_points, k, D);
         cudaDeviceSynchronize();
 
-        updateCentroids<<<blocks_centroids, 1>>>(d_centroids, d_sums, d_counts, k);
+        updateCentroids<<<blocks_centroids, threads>>>(
+            d_centroids, d_sums, d_counts, k, D);
         cudaDeviceSynchronize();
     }
 

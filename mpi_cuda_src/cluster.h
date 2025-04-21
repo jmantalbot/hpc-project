@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-void run_kmeans_gpu(float* coords, int* assignments, float* centroid_array, int num_points, int k, int maxEpochs);
+void run_kmeans_gpu(float* coords, int* assignments, float* centroids, int num_points, int k, int maxEpochs, int D);
 
 #ifdef __cplusplus
 }
