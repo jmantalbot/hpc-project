@@ -114,7 +114,12 @@ Josh Talbot
 
 Brigham Campbell
 
-- 
+- CUDA parallelization was implemented in cluster.cu. Like the other CUDA implementation, we used a CUDA kernel for computing euclidian distance and summing points per cluster. However, the task of updating the centroids had to be completed by MPI, as it's an atomic operation on the entire data set.
+- The CUDA + MPI implementation required a novel approach. Initially, I had programmed it in C++ and it was similar to other solutions. However, as I began testing, I found that the high volume of point data would exhaust resources and cause Out-Of-Memory exceptions. Presumably, this was because each process had to load its own copy of the dataset and load it into VRAM, which is relatively small compared to system memory. Running the program across multiple nodes increased the chances that it would saturate the memory of any single node.
+  - Not using rapidcsv, parse only the parts of the CSV which are relevant to the current MPI process.
+  - Load point data into VRAM
+  - Compute new centroids, and reduce the new centroid points globally via MPI
+  - Repeat until centroids have converged or the maximum epochs has been reached
 
 ## Scaling Study
 
