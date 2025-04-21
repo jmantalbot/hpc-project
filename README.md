@@ -56,6 +56,8 @@ Run `python scaling_study/visualization.py` after running any of the implementat
 
 Run `bash scaling_study/validation.sh` to check that each of the implementations get the same results. It compares each implementation's result to that of the serial implementation using a truncated dataset of 500 points. It uses `diff` for this validation.
 
+> Note: if the output of the script is very long and you don't see the 🎉 emoji, it means one of the implemenations (cuda+mpi) had a different output. Run `bash scaling_study/validation.sh > out.txt` and then view out.txt to see the complete output and check which implemenation was not succeeding.
+
 ## Approach Descriptions & Analysis
 
 ### Serial Implementation
