@@ -20,7 +20,7 @@ Our group chose project 2 -- Genre Reveal Party. This involves using a k-means a
     - `module load git-lfs`
 1. Build
   - `bash build.sh`
-    - installing boost can take a while, be patient!
+    - **installing boost can take a while, be patient!** In our experience, it takes about 10 minutes the first time.
   - Binaries will be at `build/`
 
 ## Run Instructions
@@ -105,3 +105,39 @@ Brigham Campbell
 
 ## Scaling Study
 
+Run the study with `python scaling_study/scaling_study.py`. This will run each implemenation as SLURM batch jobs, time their runs with different amounts of resources/threads/processes/block size, and plot the results. Results are saved to `scaling_study/results`. Logs are saved to `scaling_study/logs`
+
+### Design
+
+All executions are repeated 3 times to get an average execution time.
+
+- Serial & OMP
+  - Runs serial and OMP on notchpeak-freecycle with 32 cpus. Runs 1, 16, 32, 64, and 1024 threads for each and puts both the serial and omp on the same plot.
+- MPI
+  - Runs on notchpeak-freecycle with 1, 2, 3, and 4 nodes with 1, 8, 16, and 32 processes *per node*. In total, tests between 1 and 128 processes.
+  - We had frequent issues with the amount of memory needed by the MPI implementation. The notchpeak-freecycle seems to be configured with enough memory by default, but if there are issues the configuration at `scaling_study/slurm_run_mpi.sh` can be changed to use notchpeak-gpu and be given the flag `--mem-per-cpu=8000` which we found to be a successful configuration.
+- CUDA
+  - Runs on notchpeak-gpu with block sizes 1, 64, 128, and 1024. The blocks are one dimensional so from 1 to 1024 is the maximum range of values for CUDA. Grid sizes are determined within the cuda implemenation based on the block size such that each data point is given its own thread.
+- CUDA with MPI
+
+The raw timings are saved as .csv files and the plots are saved at .png files at `scaling_study/results`
+
+### Results on full dataset
+
+Serial is consistent across a varied number of results at about 70 seconds.
+
+OMP is also at about 70 seconds with one thread but then quickly decreases to around 30 seconds for all other thread counts.
+
+MPI seems to actually be slower when run on more nodes. 4 nodes was the slowest while 3 nodes were similar. 3 nodes and 1 node had similar timings. For all node counts, having 8 processes per node was the most performant. There seems to be a great deal of overhead with MPI causing too many processes and too many nodes to slow down the execution rather than speed it up.
+ 
+CUDA had the best results. As the block size increase, the time taken decreased linearly.
+
+CUDA with MPI not yet tested.
+
+## Visualization
+
+Run `python scaling_study/visualization.py` after running any of the implementations. Use `python scaling_study/visualization --help` to see how to use it. The default path for the csv data to use is `data/spotify_clusters.csv`. This output is provided in the Canvas submission. It will write the plot to `plt.png`. An example of the visualization is provided alongside the Canvas submission as `viz.png`.
+
+## Validation
+
+Run `bash scaling_study/validation.sh` to check that each of the implementations get the same results. It compares each implementation's result to that of the serial implementation using a truncated dataset of 500 points. It uses `diff` for this validation.

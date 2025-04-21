@@ -4,7 +4,7 @@ import time
 import subprocess
 import csv
 
-REPETITIONS = 5
+REPETITIONS = 3
 
 SERIAL_EXECUTABLE = "./build/genre_reveal_party"
 OMP_EXECUTABLE = "./build/genre_reveal_party_omp"
@@ -21,11 +21,7 @@ EXECUTION_TIME_HEADER = "execution_time"
 DATA_FILE = "data/spotify.csv"
 
 
-# OMP_THREAD_COUNTS = [1, 16, 32, 48, 64, 128, 256, 1024]
-# MPI_PROCESSES_PER_NODE = [1, 2, 4, 8, 16, 32]
-# BLOCK_SIZES = [1, 32, 64, 128, 256, 512, 1024]
-
-OMP_THREAD_COUNTS = [1, 32, 64, 1024]
+OMP_THREAD_COUNTS = [1, 16, 32, 64, 1024]
 MPI_PROCESSES_PER_NODE = [1, 8, 16, 32]
 BLOCK_SIZES = [1, 64, 128, 1024]
 
