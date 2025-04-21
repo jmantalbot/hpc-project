@@ -6,7 +6,7 @@ set(CMAKE_BUILD_TYPE Debug)
 include(FetchContent)
 
 set(PROJECT_NAME genre_reveal_party)
-project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX)
+project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX C CUDA)
 
 FetchContent_Declare(
 	rapidcsv
@@ -91,6 +91,10 @@ set(CUDA_TARGET genre_reveal_party_cuda)
 enable_language(CUDA)
 set(CMAKE_CUDA_STANDARD 11)
 
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES all-major)
+endif()
+
 set(SOURCE_DIR src)
 set(HEADER_FILES ${SOURCE_DIR}/point.hpp ${SOURCE_DIR}/cuda_cluster.hpp)
 set(SOURCE_FILES ${SOURCE_DIR}/cuda_cluster.cu)
@@ -113,4 +117,13 @@ target_compile_options(${CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-O3>)
 target_compile_options(${CUDA_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--default-stream per-thread>)
 
 # -- CUDA w/ MPI Target --
+set(MPI_CUDA_TARGET genre_reveal_party_mpi_cuda)
+
+set(SOURCE_DIR mpi_cuda_src)
+set(HEADER_FILES ${SOURCE_DIR}/cluster.h)
+set(SOURCE_FILES ${SOURCE_DIR}/cluster.cu)
+set(MAIN_FILE ${SOURCE_DIR}/main.c)
+add_executable(${MPI_CUDA_TARGET} ${HEADER_FILES} ${SOURCE_FILES} ${MAIN_FILE})
+
+target_link_libraries(${MPI_CUDA_TARGET} ${MPI_LIBRARIES} ${Boost_LIBRARIES})
 
